@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Timers;
 using LabApi.Features.Wrappers;
 
@@ -6,26 +7,27 @@ namespace MyFirstPlugin.Events;
 
 public class TestEvent : EventBase
 {
-    private readonly Timer _flickerTimer;
-    private readonly Timer _powerFailureTimer;
+    private readonly System.Timers.Timer _sequenceTimer;
+    private readonly System.Timers.Timer _loopTimer;
+    private int _elapsedSeconds;
     private bool _lightsOn;
-    private int _powerFailurePhase;
+    private bool _looping;
 
     public TestEvent()
     {
-        _flickerTimer = new Timer(2500);
-        _flickerTimer.AutoReset = true;
-        _flickerTimer.Elapsed += OnFlickerTick;
+        _sequenceTimer = new System.Timers.Timer(1000);
+        _sequenceTimer.AutoReset = true;
+        _sequenceTimer.Elapsed += OnSequenceTick;
 
-        _powerFailureTimer = new Timer(5000);
-        _powerFailureTimer.AutoReset = false;
-        _powerFailureTimer.Elapsed += (_, _) => StartFullBlackout();
+        _loopTimer = new System.Timers.Timer(2500);
+        _loopTimer.AutoReset = true;
+        _loopTimer.Elapsed += OnLoopTick;
     }
 
     public override string Name => "Blackout Event";
 
     public override string Description =>
-        "A cinematic blackout that flickers for a moment before the power fully fails and the lights settle into a darker rhythm.";
+        "A cinematic blackout sequence with staged flickers before the full outage, then a calmer looping flicker to keep players able to see.";
 
     public override void Start()
     {
@@ -34,17 +36,18 @@ public class TestEvent : EventBase
             10
         );
 
+        _elapsedSeconds = 0;
         _lightsOn = true;
-        _powerFailurePhase = 0;
+        _looping = false;
         Map.TurnOnLights();
-        _flickerTimer.Start();
-        _powerFailureTimer.Start();
+        _sequenceTimer.Start();
     }
 
     public override void Stop()
     {
-        _flickerTimer.Stop();
-        _powerFailureTimer.Stop();
+        _sequenceTimer.Stop();
+        _loopTimer.Stop();
+        _looping = false;
         Map.TurnOnLights();
 
         Server.SendBroadcast(
@@ -53,34 +56,74 @@ public class TestEvent : EventBase
         );
     }
 
-    private void OnFlickerTick(object sender, ElapsedEventArgs e)
+    private void OnSequenceTick(object sender, ElapsedEventArgs e)
     {
-        if (_powerFailurePhase < 2)
-        {
-            _lightsOn = !_lightsOn;
+        if (_looping)
+            return;
 
-            if (_lightsOn)
-            {
-                Map.TurnOnLights();
-            }
-            else
-            {
-                Map.TurnOffLights();
-            }
+        _elapsedSeconds++;
+
+        if (_elapsedSeconds == 1)
+        {
+            DoFlickerBurst(1);
+            return;
+        }
+
+        if (_elapsedSeconds == 21)
+        {
+            DoFlickerBurst(2);
+            return;
+        }
+
+        if (_elapsedSeconds == 31)
+        {
+            DoFlickerBurst(3);
+            return;
+        }
+
+        if (_elapsedSeconds == 36)
+        {
+            DoFlickerBurst(1);
+            return;
+        }
+
+        if (_elapsedSeconds == 41)
+        {
+            _sequenceTimer.Stop();
+            Map.TurnOffLights();
+            _lightsOn = false;
+            _looping = true;
+            _loopTimer.Start();
         }
     }
 
-    private void StartFullBlackout()
+    private void OnLoopTick(object sender, ElapsedEventArgs e)
     {
-        _powerFailurePhase = 2;
-        _flickerTimer.Interval = 2500;
+        ToggleLights();
+    }
 
-        Server.SendBroadcast(
-            "<color=red><b>Power failure! The lights are going out.</b></color>",
-            5
-        );
+    private void DoFlickerBurst(int burstCount)
+    {
+        for (int i = 0; i < burstCount; i++)
+        {
+            ToggleLights();
+            Thread.Sleep(200);
+            ToggleLights();
+            Thread.Sleep(250);
+        }
+    }
 
-        Map.TurnOffLights();
-        _lightsOn = false;
+    private void ToggleLights()
+    {
+        _lightsOn = !_lightsOn;
+
+        if (_lightsOn)
+        {
+            Map.TurnOnLights();
+        }
+        else
+        {
+            Map.TurnOffLights();
+        }
     }
 }
