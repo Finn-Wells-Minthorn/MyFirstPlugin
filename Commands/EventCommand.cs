@@ -46,7 +46,27 @@ public class EventCommand : ICommand
                     return true;
                 }
 
-                response = StartEvent(args[1]);
+                response = StartEvent(GetEventNameArgument(args));
+                return true;
+
+            case "enable":
+                if (args.Length < 2)
+                {
+                    response = "Usage: /event enable <event>\n" + GetListResponse();
+                    return true;
+                }
+
+                response = EnableEvent(GetEventNameArgument(args));
+                return true;
+
+            case "disable":
+                if (args.Length < 2)
+                {
+                    response = "Usage: /event disable <event>\n" + GetListResponse();
+                    return true;
+                }
+
+                response = DisableEvent(GetEventNameArgument(args));
                 return true;
 
             case "help":
@@ -58,7 +78,15 @@ public class EventCommand : ICommand
 
     private static string BuildUsage()
     {
-        return "Usage: /event <list|current|start <event>|stop>\n" + GetListResponse();
+        return "Usage: /event <list|current|start <event>|stop|enable <event>|disable <event>>\n" + GetListResponse();
+    }
+
+    private static string GetEventNameArgument(string[] args)
+    {
+        if (args.Length < 2)
+            return string.Empty;
+
+        return string.Join(" ", args.Skip(1));
     }
 
     private static string GetListResponse()
@@ -66,7 +94,11 @@ public class EventCommand : ICommand
         if (EventManager.RegisteredEvents.Count == 0)
             return "No events are available.";
 
-        return "Available events: " + string.Join(", ", EventManager.RegisteredEvents.Select(x => x.Name));
+        string list = string.Join(
+            ", ",
+            EventManager.RegisteredEvents.Select(x => $"{x.Name} [{(x.IsEnabled ? "enabled" : "disabled")}]"));
+
+        return "Available events: " + list;
     }
 
     private static string GetCurrentResponse()
@@ -89,7 +121,43 @@ public class EventCommand : ICommand
             return $"Event '{eventName}' was not found. " + GetListResponse();
         }
 
+        if (!target.IsEnabled)
+        {
+            return $"Event '{target.Name}' is disabled. Use /event enable {target.Name} first.";
+        }
+
         EventBase? started = EventManager.StartEvent(target);
         return started == null ? $"Failed to start event '{target.Name}'." : $"Started event: {started.Name}";
+    }
+
+    private static string EnableEvent(string eventName)
+    {
+        EventBase? target = EventManager.GetEvent(eventName);
+        if (target == null)
+            return $"Event '{eventName}' was not found. " + GetListResponse();
+
+        if (target.IsEnabled)
+            return $"Event '{target.Name}' is already enabled.";
+
+        EventManager.EnableEvent(target);
+        return $"Enabled event: {target.Name}";
+    }
+
+    private static string DisableEvent(string eventName)
+    {
+        EventBase? target = EventManager.GetEvent(eventName);
+        if (target == null)
+            return $"Event '{eventName}' was not found. " + GetListResponse();
+
+        bool wasRunning = target.IsRunning;
+
+        if (!target.IsEnabled && !wasRunning)
+            return $"Event '{target.Name}' is already disabled.";
+
+        EventManager.DisableEvent(target);
+
+        return wasRunning
+            ? $"Stopped and disabled event: {target.Name}"
+            : $"Disabled event: {target.Name}";
     }
 }

@@ -13,9 +13,19 @@ public abstract class EventBase
 
     public abstract string Description { get; }
 
-    public virtual bool Enabled => true;
+    public bool IsEnabled { get; private set; } = true;
 
     public bool IsRunning { get; private set; }
+
+    public void Enable()
+    {
+        IsEnabled = true;
+    }
+
+    public void Disable()
+    {
+        IsEnabled = false;
+    }
 
     public virtual void Start()
     {

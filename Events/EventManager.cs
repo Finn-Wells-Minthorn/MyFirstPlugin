@@ -27,6 +27,20 @@ public static class EventManager
         return IsEventRunning(eventInstance);
     }
 
+    public static bool IsEventEnabled(EventBase? eventInstance)
+    {
+        if (eventInstance == null)
+            return false;
+
+        return eventInstance.IsEnabled;
+    }
+
+    public static bool IsEventEnabled(string eventName)
+    {
+        EventBase? eventInstance = GetEvent(eventName);
+        return IsEventEnabled(eventInstance);
+    }
+
     public static void Register(EventBase eventInstance)
     {
         if (eventInstance == null)
@@ -83,7 +97,7 @@ public static class EventManager
         if (eventInstance == null)
             return null;
 
-        if (!eventInstance.Enabled)
+        if (!eventInstance.IsEnabled)
             return null;
 
         if (eventInstance.IsRunning)
@@ -113,7 +127,7 @@ public static class EventManager
     public static EventBase? SelectRandomEvent()
     {
         List<EventBase> available = Registered.Values
-            .Where(x => x.Enabled)
+            .Where(x => x.IsEnabled)
             .ToList();
 
         if (available.Count == 0)
@@ -129,5 +143,45 @@ public static class EventManager
             return null;
 
         return StartEvent(selectedEvent);
+    }
+
+    public static bool EnableEvent(string eventName)
+    {
+        EventBase? eventInstance = GetEvent(eventName);
+        return EnableEvent(eventInstance);
+    }
+
+    public static bool EnableEvent(EventBase? eventInstance)
+    {
+        if (eventInstance == null)
+            return false;
+
+        eventInstance.Enable();
+        return true;
+    }
+
+    public static bool DisableEvent(string eventName)
+    {
+        EventBase? eventInstance = GetEvent(eventName);
+        return DisableEvent(eventInstance);
+    }
+
+    public static bool DisableEvent(EventBase? eventInstance)
+    {
+        if (eventInstance == null)
+            return false;
+
+        // Stop first if the target is running, then disable it.
+        if (CurrentEvent == eventInstance)
+        {
+            StopCurrentEvent();
+        }
+        else if (eventInstance.IsRunning)
+        {
+            eventInstance.Stop();
+        }
+
+        eventInstance.Disable();
+        return true;
     }
 }
