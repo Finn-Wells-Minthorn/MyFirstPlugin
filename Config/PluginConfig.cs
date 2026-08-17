@@ -1,8 +1,12 @@
+using MyFirstPlugin.Events;
+
 namespace MyFirstPlugin.Config;
 
 public class PluginConfig
 {
     public bool AutomaticEventsEnabled { get; set; } = true;
+
+    public EventRollConfig EventRoll { get; set; } = new();
 
     public BlackoutEventConfig Blackout { get; set; } = new();
 }
