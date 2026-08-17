@@ -22,6 +22,9 @@ public class BlackoutEvent : EventBase
         _loopTimer = new System.Timers.Timer(2500);
         _loopTimer.AutoReset = true;
         _loopTimer.Elapsed += OnLoopTick;
+
+        TrackTimer(_sequenceTimer);
+        TrackTimer(_loopTimer);
     }
 
     public override string Name => "Blackout Event";
@@ -31,6 +34,8 @@ public class BlackoutEvent : EventBase
 
     public override void Start()
     {
+        base.Start();
+
         Server.SendBroadcast(
             "<color=red><b>BLACKOUT EVENT ACTIVATED!</b></color>",
             10
@@ -45,6 +50,9 @@ public class BlackoutEvent : EventBase
 
     public override void Stop()
     {
+        if (!IsRunning)
+            return;
+
         _sequenceTimer.Stop();
         _loopTimer.Stop();
         _looping = false;
@@ -54,6 +62,8 @@ public class BlackoutEvent : EventBase
             "<color=green><b>Power restored. The blackout has ended.</b></color>",
             5
         );
+
+        base.Stop();
     }
 
     private void OnSequenceTick(object sender, ElapsedEventArgs e)
