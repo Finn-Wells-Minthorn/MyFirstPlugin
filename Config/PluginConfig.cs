@@ -2,6 +2,8 @@ namespace MyFirstPlugin.Config;
 
 public class PluginConfig
 {
+    public bool AutomaticEventsEnabled { get; set; } = true;
+
     public BlackoutEventConfig Blackout { get; set; } = new();
 }
 

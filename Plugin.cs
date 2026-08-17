@@ -12,6 +12,11 @@ namespace MyFirstPlugin;
 
 public class MyFirstPlugin : Plugin<PluginConfig>
 {
+    public static MyFirstPlugin? Instance { get; private set; }
+
+    public static bool AutomaticEventsEnabled =>
+        Instance == null ? true : Instance.Config.AutomaticEventsEnabled;
+
     public override string Name => "SCP Event System";
 
     public override string Author => "Your Name";
@@ -34,6 +39,8 @@ public class MyFirstPlugin : Plugin<PluginConfig>
 
     public override void Enable()
     {
+        Instance = this;
+
         RegisterEvents();
         RegisterCommands();
         CustomHandlersManager.RegisterEventsHandler(_roundHandler);
@@ -55,6 +62,7 @@ public class MyFirstPlugin : Plugin<PluginConfig>
         EventManager.StopCurrentEvent();
 
         CustomHandlersManager.UnregisterEventsHandler(_roundHandler);
+        Instance = null;
 
         Console.WriteLine("[SCPEventSystem] Disabled!");
     }

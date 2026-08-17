@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using CommandSystem;
 using MyFirstPlugin.Events;
+using MyFirstPlugin.Config;
 
 namespace MyFirstPlugin.Commands;
 
@@ -69,6 +70,16 @@ public class EventCommand : ICommand
                 response = DisableEvent(GetEventNameArgument(args));
                 return true;
 
+            case "auto":
+                if (args.Length < 2)
+                {
+                    response = "Usage: /event auto <on|off>\n" + GetAutoModeResponse();
+                    return true;
+                }
+
+                response = SetAutomaticMode(args[1]);
+                return true;
+
             case "help":
             default:
                 response = BuildUsage();
@@ -78,7 +89,7 @@ public class EventCommand : ICommand
 
     private static string BuildUsage()
     {
-        return "Usage: /event <list|current|start <event>|stop|enable <event>|disable <event>>\n" + GetListResponse();
+        return "Usage: /event <list|current|start <event>|stop|enable <event>|disable <event>|auto <on|off>>\n" + GetListResponse();
     }
 
     private static string GetEventNameArgument(string[] args)
@@ -92,13 +103,13 @@ public class EventCommand : ICommand
     private static string GetListResponse()
     {
         if (EventManager.RegisteredEvents.Count == 0)
-            return "No events are available.";
+            return "No events are available. Automatic events: " + (global::MyFirstPlugin.MyFirstPlugin.AutomaticEventsEnabled ? "enabled" : "disabled");
 
         string list = string.Join(
             ", ",
             EventManager.RegisteredEvents.Select(x => $"{x.Name} [{(x.IsEnabled ? "enabled" : "disabled")}]"));
 
-        return "Available events: " + list;
+        return "Automatic events: " + (global::MyFirstPlugin.MyFirstPlugin.AutomaticEventsEnabled ? "enabled" : "disabled") + "\nAvailable events: " + list;
     }
 
     private static string GetCurrentResponse()
@@ -128,6 +139,33 @@ public class EventCommand : ICommand
 
         EventBase? started = EventManager.StartEvent(target);
         return started == null ? $"Failed to start event '{target.Name}'." : $"Started event: {started.Name}";
+    }
+
+    private static string GetAutoModeResponse()
+    {
+        return $"Automatic events are currently {(global::MyFirstPlugin.MyFirstPlugin.AutomaticEventsEnabled ? "enabled" : "disabled")}.";
+    }
+
+    private static string SetAutomaticMode(string mode)
+    {
+        if (global::MyFirstPlugin.MyFirstPlugin.Instance == null)
+            return "The plugin is not active, so automatic mode cannot be changed.";
+
+        string normalized = mode.Trim();
+
+        if (string.Equals(normalized, "on", StringComparison.OrdinalIgnoreCase))
+        {
+            global::MyFirstPlugin.MyFirstPlugin.Instance.Config.AutomaticEventsEnabled = true;
+            return "Automatic events enabled.";
+        }
+
+        if (string.Equals(normalized, "off", StringComparison.OrdinalIgnoreCase))
+        {
+            global::MyFirstPlugin.MyFirstPlugin.Instance.Config.AutomaticEventsEnabled = false;
+            return "Automatic events disabled.";
+        }
+
+        return "Usage: /event auto <on|off>";
     }
 
     private static string EnableEvent(string eventName)
