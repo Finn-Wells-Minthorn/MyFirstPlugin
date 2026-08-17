@@ -1,6 +1,5 @@
 using System;
 using System.Timers;
-using LabApi.Features.Enums;
 using LabApi.Features.Wrappers;
 
 namespace MyFirstPlugin.Events;
@@ -8,8 +7,9 @@ namespace MyFirstPlugin.Events;
 public class TestEvent : EventBase
 {
     private readonly Timer _flickerTimer;
-    private readonly Timer _lanternDelayTimer;
+    private readonly Timer _powerFailureTimer;
     private bool _lightsOn;
+    private int _powerFailurePhase;
 
     public TestEvent()
     {
@@ -17,15 +17,15 @@ public class TestEvent : EventBase
         _flickerTimer.AutoReset = true;
         _flickerTimer.Elapsed += OnFlickerTick;
 
-        _lanternDelayTimer = new Timer(7000);
-        _lanternDelayTimer.AutoReset = false;
-        _lanternDelayTimer.Elapsed += (_, _) => GiveLanterns();
+        _powerFailureTimer = new Timer(5000);
+        _powerFailureTimer.AutoReset = false;
+        _powerFailureTimer.Elapsed += (_, _) => StartFullBlackout();
     }
 
     public override string Name => "Blackout Event";
 
     public override string Description =>
-        "A slow, flickering blackout where the facility goes dark and lanterns are given after the round is active.";
+        "A cinematic blackout that flickers for a moment before the power fully fails and the lights settle into a darker rhythm.";
 
     public override void Start()
     {
@@ -34,16 +34,17 @@ public class TestEvent : EventBase
             10
         );
 
-        _lightsOn = false;
-        Map.TurnOffLights();
+        _lightsOn = true;
+        _powerFailurePhase = 0;
+        Map.TurnOnLights();
         _flickerTimer.Start();
-        _lanternDelayTimer.Start();
+        _powerFailureTimer.Start();
     }
 
     public override void Stop()
     {
         _flickerTimer.Stop();
-        _lanternDelayTimer.Stop();
+        _powerFailureTimer.Stop();
         Map.TurnOnLights();
 
         Server.SendBroadcast(
@@ -54,23 +55,32 @@ public class TestEvent : EventBase
 
     private void OnFlickerTick(object sender, ElapsedEventArgs e)
     {
-        _lightsOn = !_lightsOn;
+        if (_powerFailurePhase < 2)
+        {
+            _lightsOn = !_lightsOn;
 
-        if (_lightsOn)
-        {
-            Map.TurnOnLights();
-        }
-        else
-        {
-            Map.TurnOffLights();
+            if (_lightsOn)
+            {
+                Map.TurnOnLights();
+            }
+            else
+            {
+                Map.TurnOffLights();
+            }
         }
     }
 
-    private void GiveLanterns()
+    private void StartFullBlackout()
     {
-        foreach (Player player in Player.List)
-        {
-            player.AddItem(ItemType.Lantern);
-        }
+        _powerFailurePhase = 2;
+        _flickerTimer.Interval = 2500;
+
+        Server.SendBroadcast(
+            "<color=red><b>Power failure! The lights are going out.</b></color>",
+            5
+        );
+
+        Map.TurnOffLights();
+        _lightsOn = false;
     }
 }
