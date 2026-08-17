@@ -7,6 +7,7 @@ public abstract class EventBase
 {
     private readonly List<IDisposable> _subscriptions = new();
     private readonly List<System.Timers.Timer> _timers = new();
+    private readonly List<Action> _cleanupActions = new();
 
     public abstract string Name { get; }
 
@@ -59,6 +60,14 @@ public abstract class EventBase
         _subscriptions.Add(subscription);
     }
 
+    protected void TrackCleanupAction(Action cleanupAction)
+    {
+        if (cleanupAction == null)
+            throw new ArgumentNullException(nameof(cleanupAction));
+
+        _cleanupActions.Add(cleanupAction);
+    }
+
     protected void Cleanup()
     {
         foreach (System.Timers.Timer timer in _timers)
@@ -66,6 +75,7 @@ public abstract class EventBase
             try
             {
                 timer.Stop();
+                timer.Elapsed -= null;
                 timer.Dispose();
             }
             catch
@@ -86,7 +96,20 @@ public abstract class EventBase
             }
         }
 
+        foreach (Action cleanupAction in _cleanupActions)
+        {
+            try
+            {
+                cleanupAction();
+            }
+            catch
+            {
+                // Ignore cleanup errors so a single event can fail without corrupting the registry.
+            }
+        }
+
         _timers.Clear();
         _subscriptions.Clear();
+        _cleanupActions.Clear();
     }
 }

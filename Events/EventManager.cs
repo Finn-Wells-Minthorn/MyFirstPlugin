@@ -72,6 +72,9 @@ public static class EventManager
         if (CurrentEvent != null && CurrentEvent != eventInstance)
             StopCurrentEvent();
 
+        if (CurrentEvent == eventInstance && eventInstance.IsRunning)
+            return CurrentEvent;
+
         CurrentEvent = eventInstance;
         eventInstance.Start();
 
@@ -84,8 +87,8 @@ public static class EventManager
             return null;
 
         EventBase current = CurrentEvent;
-        current.Stop();
         CurrentEvent = null;
+        current.Stop();
 
         return current;
     }

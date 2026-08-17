@@ -32,10 +32,8 @@ public class BlackoutEvent : EventBase
     public override string Description =>
         "A cinematic blackout sequence with staged flickers before the full outage, then a calmer looping flicker to keep players able to see.";
 
-    public override void Start()
+    protected override void OnStart()
     {
-        base.Start();
-
         Server.SendBroadcast(
             "<color=red><b>BLACKOUT EVENT ACTIVATED!</b></color>",
             10
@@ -48,11 +46,8 @@ public class BlackoutEvent : EventBase
         _sequenceTimer.Start();
     }
 
-    public override void Stop()
+    protected override void OnStop()
     {
-        if (!IsRunning)
-            return;
-
         _sequenceTimer.Stop();
         _loopTimer.Stop();
         _looping = false;
@@ -62,8 +57,6 @@ public class BlackoutEvent : EventBase
             "<color=green><b>Power restored. The blackout has ended.</b></color>",
             5
         );
-
-        base.Stop();
     }
 
     private void OnSequenceTick(object sender, ElapsedEventArgs e)
