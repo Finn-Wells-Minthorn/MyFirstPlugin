@@ -15,6 +15,7 @@ public class BlackoutEvent : EventBase
     private readonly Random _random = new();
     private CoroutineHandle _sequenceHandle;
     private CoroutineHandle _normalCycleHandle;
+    private CoroutineHandle _flickerHandle;
     private int _elapsedSeconds;
     private bool _lightsOn;
     private bool _normalCycleRunning;
@@ -68,6 +69,9 @@ public class BlackoutEvent : EventBase
 
         if (_normalCycleHandle.IsValid)
             Timing.KillCoroutines(_normalCycleHandle);
+
+        if (_flickerHandle.IsValid)
+            Timing.KillCoroutines(_flickerHandle);
 
         _normalCycleRunning = false;
         _lightsOn = true;
@@ -141,47 +145,40 @@ public class BlackoutEvent : EventBase
 
     private IEnumerator<float> NormalCycleRoutine()
     {
-        int blackoutDurationSeconds = Math.Max(1, _config.BlackoutDurationSeconds);
-        int shortBlackoutSeconds = Math.Max(1, _config.NormalShortBlackoutSeconds);
-        int poweredSeconds = Math.Max(1, _config.NormalPoweredSeconds);
-        int longBlackoutMinSeconds = Math.Max(180, _config.LongBlackoutMinSeconds);
+        int longBlackoutMinSeconds = Math.Max(1, _config.LongBlackoutMinSeconds);
         int longBlackoutMaxSeconds = Math.Max(longBlackoutMinSeconds, _config.LongBlackoutMaxSeconds);
+        int poweredSeconds = Math.Max(1, _config.NormalPoweredSeconds);
 
-        while (IsRunning && _elapsedSeconds < blackoutDurationSeconds)
+        while (IsRunning)
         {
+            int blackoutSeconds = _random.Next(longBlackoutMinSeconds, longBlackoutMaxSeconds + 1);
             Map.TurnOffLights();
             _lightsOn = false;
-            yield return Timing.WaitForSeconds(shortBlackoutSeconds);
 
-            if (!IsRunning || _elapsedSeconds >= blackoutDurationSeconds)
-                yield break;
-
-            Map.TurnOnLights();
-            _lightsOn = true;
-            if (_config.EnableFlickering)
+            if (_config.EnableFlickering && _random.NextDouble() <= Clamp(_config.BlackoutFlickerChance, 0f, 1f))
             {
-                _scheduledActions.Add(Timing.RunCoroutine(SubtlePowerFlickerRoutine(poweredSeconds)));
+                if (_flickerHandle.IsValid)
+                    Timing.KillCoroutines(_flickerHandle);
+
+                _flickerHandle = Timing.RunCoroutine(BlackoutFlickerRoutine(blackoutSeconds));
+                _scheduledActions.Add(_flickerHandle);
             }
 
-            yield return Timing.WaitForSeconds(poweredSeconds);
+            yield return Timing.WaitForSeconds(blackoutSeconds);
 
-            if (!IsRunning || _elapsedSeconds >= blackoutDurationSeconds)
-                yield break;
-
-            Map.TurnOffLights();
-            _lightsOn = false;
-
-            int longBlackoutSeconds = _random.Next(longBlackoutMinSeconds, longBlackoutMaxSeconds + 1);
-            yield return Timing.WaitForSeconds(longBlackoutSeconds);
-
-            if (!IsRunning || _elapsedSeconds >= blackoutDurationSeconds)
+            if (!IsRunning)
                 yield break;
 
             Map.TurnOnLights();
             _lightsOn = true;
-            if (_config.EnableFlickering)
+
+            if (_config.EnableFlickering && _random.NextDouble() <= Clamp(_config.PoweredFlickerChance, 0f, 1f))
             {
-                _scheduledActions.Add(Timing.RunCoroutine(SubtlePowerFlickerRoutine(poweredSeconds)));
+                if (_flickerHandle.IsValid)
+                    Timing.KillCoroutines(_flickerHandle);
+
+                _flickerHandle = Timing.RunCoroutine(SubtlePowerFlickerRoutine(poweredSeconds));
+                _scheduledActions.Add(_flickerHandle);
             }
 
             yield return Timing.WaitForSeconds(poweredSeconds);
@@ -194,27 +191,33 @@ public class BlackoutEvent : EventBase
         }
     }
 
-    private IEnumerator<float> SubtlePowerFlickerRoutine(float poweredSeconds)
+    private IEnumerator<float> BlackoutFlickerRoutine(float blackoutSeconds)
     {
+        float flickerDuration = Math.Max(0.05f, _config.BlackoutFlickerDurationSeconds);
+        float minInterval = Math.Max(1f, _config.BlackoutFlickerMinIntervalSeconds);
+        float maxInterval = Math.Max(minInterval, _config.BlackoutFlickerMaxIntervalSeconds);
+
+        int flickerCount = 1 + _random.Next(0, 3);
         float elapsed = 0f;
-        while (IsRunning && elapsed < poweredSeconds)
+
+        for (int i = 0; i < flickerCount && IsRunning; i++)
         {
-            float interval = GetRandomSubtleInterval();
-            if (elapsed + interval > poweredSeconds)
-                interval = poweredSeconds - elapsed;
+            float delay = (float)_random.NextDouble() * (maxInterval - minInterval) + minInterval;
+            if (elapsed + delay > blackoutSeconds)
+                delay = Math.Max(0.1f, blackoutSeconds - elapsed);
 
-            yield return Timing.WaitForSeconds(interval);
-            elapsed += interval;
+            yield return Timing.WaitForSeconds(delay);
+            elapsed += delay;
 
-            if (!IsRunning || !_lightsOn || !_config.EnableFlickering)
+            if (!IsRunning)
                 yield break;
 
-            float flickerDuration = Math.Min(_config.SubtleFlickerDurationSeconds, poweredSeconds - elapsed);
-            if (flickerDuration <= 0f)
-                yield break;
+            if (_lightsOn)
+            {
+                Map.TurnOffLights();
+                _lightsOn = false;
+            }
 
-            Map.TurnOffLights();
-            _lightsOn = false;
             yield return Timing.WaitForSeconds(flickerDuration);
 
             if (!IsRunning)
@@ -223,6 +226,30 @@ public class BlackoutEvent : EventBase
             Map.TurnOnLights();
             _lightsOn = true;
         }
+    }
+
+    private IEnumerator<float> SubtlePowerFlickerRoutine(float poweredSeconds)
+    {
+        float flickerDuration = Math.Max(0.05f, _config.SubtleFlickerDurationSeconds);
+        float interval = GetRandomSubtleInterval();
+
+        if (!IsRunning)
+            yield break;
+
+        yield return Timing.WaitForSeconds(Math.Min(interval, poweredSeconds));
+
+        if (!IsRunning || !_lightsOn || !_config.EnableFlickering)
+            yield break;
+
+        Map.TurnOffLights();
+        _lightsOn = false;
+        yield return Timing.WaitForSeconds(flickerDuration);
+
+        if (!IsRunning)
+            yield break;
+
+        Map.TurnOnLights();
+        _lightsOn = true;
     }
 
     private float GetRandomSubtleInterval()
@@ -249,6 +276,11 @@ public class BlackoutEvent : EventBase
 
     private void CancelScheduledHandles()
     {
+        if (_flickerHandle.IsValid)
+            Timing.KillCoroutines(_flickerHandle);
+
+        _flickerHandle = default;
+
         for (int i = _scheduledActions.Count - 1; i >= 0; i--)
         {
             CoroutineHandle handle = _scheduledActions[i];
@@ -264,6 +296,17 @@ public class BlackoutEvent : EventBase
         int requestedMilliseconds = config.FlickerStepDurationMilliseconds * 8;
         int safeMilliseconds = Math.Max(1000, requestedMilliseconds);
         return safeMilliseconds / 1000f;
+    }
+
+    private static float Clamp(float value, float min, float max)
+    {
+        if (value < min)
+            return min;
+
+        if (value > max)
+            return max;
+
+        return value;
     }
 
     private void ToggleLights()

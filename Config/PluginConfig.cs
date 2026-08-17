@@ -25,9 +25,19 @@ public class BlackoutEventConfig
 
     public int NormalPoweredSeconds { get; set; } = 10;
 
+    public float BlackoutFlickerChance { get; set; } = 0.35f;
+
+    public float PoweredFlickerChance { get; set; } = 0.5f;
+
+    public float BlackoutFlickerMinIntervalSeconds { get; set; } = 5f;
+
+    public float BlackoutFlickerMaxIntervalSeconds { get; set; } = 18f;
+
+    public float BlackoutFlickerDurationSeconds { get; set; } = 0.12f;
+
     public int LongBlackoutMinSeconds { get; set; } = 180;
 
-    public int LongBlackoutMaxSeconds { get; set; } = 240;
+    public int LongBlackoutMaxSeconds { get; set; } = 300;
 
     public float SubtleFlickerMinIntervalSeconds { get; set; } = 2.5f;
 
