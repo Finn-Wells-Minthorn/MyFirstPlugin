@@ -12,3 +12,5 @@ C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstP.8676
 C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.dll
 C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.pdb
 C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.sourcelink.json
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net48\Assembly-CSharp-firstpass.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net48\UnityEngine.CoreModule.dll
