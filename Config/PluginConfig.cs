@@ -17,6 +17,20 @@ public class BlackoutEventConfig
 
     public int FlickerStepDurationMilliseconds { get; set; } = 225;
 
+    public int NormalShortBlackoutSeconds { get; set; } = 30;
+
+    public int NormalPoweredSeconds { get; set; } = 10;
+
+    public int LongBlackoutMinSeconds { get; set; } = 180;
+
+    public int LongBlackoutMaxSeconds { get; set; } = 240;
+
+    public float SubtleFlickerMinIntervalSeconds { get; set; } = 2.5f;
+
+    public float SubtleFlickerMaxIntervalSeconds { get; set; } = 5.5f;
+
+    public float SubtleFlickerDurationSeconds { get; set; } = 0.15f;
+
     public string StartAnnouncement { get; set; } = "<color=red><b>BLACKOUT EVENT ACTIVATED!</b></color>";
 
     public string EndAnnouncement { get; set; } = "<color=green><b>Power restored. The blackout has ended.</b></color>";
