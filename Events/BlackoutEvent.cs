@@ -5,7 +5,7 @@ using LabApi.Features.Wrappers;
 
 namespace MyFirstPlugin.Events;
 
-public class TestEvent : EventBase
+public class BlackoutEvent : EventBase
 {
     private readonly System.Timers.Timer _sequenceTimer;
     private readonly System.Timers.Timer _loopTimer;
@@ -13,7 +13,7 @@ public class TestEvent : EventBase
     private bool _lightsOn;
     private bool _looping;
 
-    public TestEvent()
+    public BlackoutEvent()
     {
         _sequenceTimer = new System.Timers.Timer(1000);
         _sequenceTimer.AutoReset = true;

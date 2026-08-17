@@ -7,7 +7,7 @@ public static class EventManager
 {
     private static readonly List<EventBase> Events = new()
     {
-        new TestEvent()
+        new BlackoutEvent()
     };
 
     private static readonly Random Random = new();
