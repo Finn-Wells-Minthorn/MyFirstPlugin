@@ -31,6 +31,10 @@ public class BlackoutEventConfig
 
     public float SubtleFlickerDurationSeconds { get; set; } = 0.15f;
 
+    public bool EnableCassieAnnouncement { get; set; } = false;
+
+    public string CassieAnnouncementText { get; set; } = "blackout event activated";
+
     public string StartAnnouncement { get; set; } = "<color=red><b>BLACKOUT EVENT ACTIVATED!</b></color>";
 
     public string EndAnnouncement { get; set; } = "<color=green><b>Power restored. The blackout has ended.</b></color>";

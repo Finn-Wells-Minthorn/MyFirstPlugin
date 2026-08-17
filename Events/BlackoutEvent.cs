@@ -31,6 +31,17 @@ public class BlackoutEvent : EventBase
 
     protected override void OnStart()
     {
+        if (_config.EnableCassieAnnouncement && !string.IsNullOrWhiteSpace(_config.CassieAnnouncementText))
+        {
+            LabApi.Features.Wrappers.Announcer.Message(
+                _config.CassieAnnouncementText,
+                _config.CassieAnnouncementText,
+                false,
+                1f,
+                0f
+            );
+        }
+
         Server.SendBroadcast(
             _config.StartAnnouncement,
             _config.StartAnnouncementDurationSeconds
