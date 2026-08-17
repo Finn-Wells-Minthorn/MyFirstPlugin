@@ -1,13 +1,16 @@
 using LabApi.Events.CustomHandlers;
 using LabApi.Features;
+using LabApi.Loader;
 using LabApi.Loader.Features.Plugins;
 using System;
+using MyFirstPlugin.Commands;
+using MyFirstPlugin.Config;
 using MyFirstPlugin.Handlers;
 using MyFirstPlugin.Events;
 
 namespace MyFirstPlugin;
 
-public class MyFirstPlugin : Plugin
+public class MyFirstPlugin : Plugin<PluginConfig>
 {
     public override string Name => "SCP Event System";
 
@@ -22,13 +25,29 @@ public class MyFirstPlugin : Plugin
         new(LabApiProperties.CompiledVersion);
 
     private readonly RoundHandler _roundHandler = new();
+    private bool _commandsRegistered;
+
+    private void RegisterEvents()
+    {
+        EventManager.Register(new BlackoutEvent(Config.Blackout));
+    }
 
     public override void Enable()
     {
-        EventManager.Register(new BlackoutEvent());
+        RegisterEvents();
+        RegisterCommands();
         CustomHandlersManager.RegisterEventsHandler(_roundHandler);
 
         Console.WriteLine("[SCPEventSystem] Enabled!");
+    }
+
+    private void RegisterCommands()
+    {
+        if (_commandsRegistered)
+            return;
+
+        CommandLoader.RegisterCommands(typeof(EventCommand), Name);
+        _commandsRegistered = true;
     }
 
     public override void Disable()

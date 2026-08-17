@@ -2,24 +2,30 @@ using System;
 using System.Threading;
 using System.Timers;
 using LabApi.Features.Wrappers;
+using MyFirstPlugin.Config;
 
 namespace MyFirstPlugin.Events;
 
 public class BlackoutEvent : EventBase
 {
+    private const int SequenceTickMilliseconds = 1000;
+
+    private readonly BlackoutEventConfig _config;
     private readonly System.Timers.Timer _sequenceTimer;
     private readonly System.Timers.Timer _loopTimer;
     private int _elapsedSeconds;
     private bool _lightsOn;
     private bool _looping;
 
-    public BlackoutEvent()
+    public BlackoutEvent(BlackoutEventConfig? config)
     {
-        _sequenceTimer = new System.Timers.Timer(1000);
+        _config = config ?? new BlackoutEventConfig();
+
+        _sequenceTimer = new System.Timers.Timer(SequenceTickMilliseconds);
         _sequenceTimer.AutoReset = true;
         _sequenceTimer.Elapsed += OnSequenceTick;
 
-        _loopTimer = new System.Timers.Timer(2500);
+        _loopTimer = new System.Timers.Timer(GetSafeLoopIntervalMilliseconds(_config));
         _loopTimer.AutoReset = true;
         _loopTimer.Elapsed += OnLoopTick;
 
@@ -35,8 +41,8 @@ public class BlackoutEvent : EventBase
     protected override void OnStart()
     {
         Server.SendBroadcast(
-            "<color=red><b>BLACKOUT EVENT ACTIVATED!</b></color>",
-            10
+            _config.StartAnnouncement,
+            _config.StartAnnouncementDurationSeconds
         );
 
         _elapsedSeconds = 0;
@@ -54,49 +60,61 @@ public class BlackoutEvent : EventBase
         Map.TurnOnLights();
 
         Server.SendBroadcast(
-            "<color=green><b>Power restored. The blackout has ended.</b></color>",
-            5
+            _config.EndAnnouncement,
+            _config.EndAnnouncementDurationSeconds
         );
     }
 
     private void OnSequenceTick(object sender, ElapsedEventArgs e)
     {
+        int blackoutDurationSeconds = Math.Max(1, _config.BlackoutDurationSeconds);
+        if (_elapsedSeconds >= blackoutDurationSeconds)
+        {
+            EventManager.StopCurrentEvent();
+            return;
+        }
+
         if (_looping)
             return;
 
         _elapsedSeconds++;
 
-        if (_elapsedSeconds == 1)
+        if (_config.EnableFlickering && _elapsedSeconds == 1)
         {
             DoFlickerBurst(1);
             return;
         }
 
-        if (_elapsedSeconds == 21)
+        if (_config.EnableFlickering && _elapsedSeconds == 21)
         {
             DoFlickerBurst(2);
             return;
         }
 
-        if (_elapsedSeconds == 31)
+        if (_config.EnableFlickering && _elapsedSeconds == 31)
         {
             DoFlickerBurst(3);
             return;
         }
 
-        if (_elapsedSeconds == 36)
+        if (_config.EnableFlickering && _elapsedSeconds == 36)
         {
             DoFlickerBurst(1);
             return;
         }
 
-        if (_elapsedSeconds == 41)
+        int transitionDelaySeconds = Math.Max(1, _config.FlickerTransitionDelaySeconds);
+        if (_elapsedSeconds == transitionDelaySeconds)
         {
             _sequenceTimer.Stop();
             Map.TurnOffLights();
             _lightsOn = false;
-            _looping = true;
-            _loopTimer.Start();
+
+            if (_config.EnableFlickering)
+            {
+                _looping = true;
+                _loopTimer.Start();
+            }
         }
     }
 
@@ -107,13 +125,21 @@ public class BlackoutEvent : EventBase
 
     private void DoFlickerBurst(int burstCount)
     {
+        int stepDurationMilliseconds = Math.Max(50, _config.FlickerStepDurationMilliseconds);
+
         for (int i = 0; i < burstCount; i++)
         {
             ToggleLights();
-            Thread.Sleep(200);
+            Thread.Sleep(stepDurationMilliseconds);
             ToggleLights();
-            Thread.Sleep(250);
+            Thread.Sleep(stepDurationMilliseconds);
         }
+    }
+
+    private static int GetSafeLoopIntervalMilliseconds(BlackoutEventConfig config)
+    {
+        int requested = config.FlickerStepDurationMilliseconds * 8;
+        return Math.Max(1000, requested);
     }
 
     private void ToggleLights()

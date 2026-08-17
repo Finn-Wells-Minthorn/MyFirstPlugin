@@ -15,6 +15,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="CommandSystem.Core">
+      <HintPath>E:\SteamLibrary\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\CommandSystem.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Northwood.LabAPI" Version="1.1.7" />
   </ItemGroup>
 

@@ -13,10 +13,27 @@ public static class EventManager
 
     public static IReadOnlyCollection<EventBase> RegisteredEvents => Registered.Values;
 
+    public static bool IsEventRunning(EventBase? eventInstance)
+    {
+        if (eventInstance == null)
+            return false;
+
+        return eventInstance.IsRunning;
+    }
+
+    public static bool IsEventRunning(string eventName)
+    {
+        EventBase? eventInstance = GetEvent(eventName);
+        return IsEventRunning(eventInstance);
+    }
+
     public static void Register(EventBase eventInstance)
     {
         if (eventInstance == null)
             throw new ArgumentNullException(nameof(eventInstance));
+
+        if (string.IsNullOrWhiteSpace(eventInstance.Name))
+            throw new InvalidOperationException("Event name cannot be empty.");
 
         if (Registered.ContainsKey(eventInstance.Name))
             throw new InvalidOperationException($"An event with the name '{eventInstance.Name}' is already registered.");
@@ -69,11 +86,11 @@ public static class EventManager
         if (!eventInstance.Enabled)
             return null;
 
+        if (eventInstance.IsRunning)
+            return eventInstance;
+
         if (CurrentEvent != null && CurrentEvent != eventInstance)
             StopCurrentEvent();
-
-        if (CurrentEvent == eventInstance && eventInstance.IsRunning)
-            return CurrentEvent;
 
         CurrentEvent = eventInstance;
         eventInstance.Start();
