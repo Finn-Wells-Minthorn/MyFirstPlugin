@@ -11,10 +11,14 @@ public class RoundHandler : CustomEventsHandler
 {
     private readonly EventSelector _eventSelector = new();
     private EventRollPresenter? _eventRollPresenter;
+    private EventStartSequencePresenter? _eventStartSequencePresenter;
 
     private EventRollPresenter EventRollPresenter =>
         _eventRollPresenter ??= new EventRollPresenter(
             global::MyFirstPlugin.MyFirstPlugin.Instance?.Config?.EventRoll ?? new EventRollConfig());
+
+    private EventStartSequencePresenter EventStartSequencePresenter =>
+        _eventStartSequencePresenter ??= new EventStartSequencePresenter();
 
     public override void OnServerRoundStarted()
     {
@@ -48,29 +52,33 @@ public class RoundHandler : CustomEventsHandler
 
         Logger.Info($"[SCPEventSystem] Event selected for roll: {selectedEvent.Name}");
 
-        EventRollPresenter.Start(
-            selectedEvent,
-            enabledEvents,
-            startedEvent =>
-            {
-                if (EventManager.CurrentEvent != null)
-                    return;
-
-                EventBase? launchedEvent = EventManager.StartEvent(startedEvent);
-                if (launchedEvent == null)
+        EventStartSequencePresenter.Start(() =>
+        {
+            EventRollPresenter.Start(
+                selectedEvent,
+                enabledEvents,
+                startedEvent =>
                 {
-                    Logger.Warn($"[SCPEventSystem] Failed to start selected event: {startedEvent.Name}");
-                    return;
-                }
+                    if (EventManager.CurrentEvent != null)
+                        return;
 
-                Logger.Info(
-                    $"[SCPEventSystem] Selected event: {launchedEvent.Name} - {launchedEvent.Description}");
-            });
+                    EventBase? launchedEvent = EventManager.StartEvent(startedEvent);
+                    if (launchedEvent == null)
+                    {
+                        Logger.Warn($"[SCPEventSystem] Failed to start selected event: {startedEvent.Name}");
+                        return;
+                    }
+
+                    Logger.Info(
+                        $"[SCPEventSystem] Selected event: {launchedEvent.Name} - {launchedEvent.Description}");
+                });
+        });
     }
 
     public override void OnServerRoundEnded(RoundEndedEventArgs ev)
     {
         Logger.Info("[SCPEventSystem] Round ended.");
+        EventStartSequencePresenter.Cancel();
         EventRollPresenter.Cancel();
         EventManager.StopCurrentEvent();
     }
@@ -78,6 +86,7 @@ public class RoundHandler : CustomEventsHandler
     public override void OnServerRoundRestarted()
     {
         Logger.Info("[SCPEventSystem] Round restarting.");
+        EventStartSequencePresenter.Cancel();
         EventRollPresenter.Cancel();
         EventManager.StopCurrentEvent();
     }
