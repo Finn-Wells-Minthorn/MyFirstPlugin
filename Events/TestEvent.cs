@@ -17,13 +17,12 @@ public class TestEvent : EventBase
             10
         );
         
-        Task.Delay(5000).ContinueWith(_ =>
         {
             foreach (Player player in Player.List)
             {
                 player.AddItem(ItemType.Flashlight);
             }
-        });
+        }
     }
 
     public override void Stop()
