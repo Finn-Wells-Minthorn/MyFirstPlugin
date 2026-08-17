@@ -44,7 +44,7 @@ public abstract class EventBase
     {
     }
 
-    protected void TrackTimer(System.Timers.Timer timer)
+    public void TrackTimer(System.Timers.Timer timer)
     {
         if (timer == null)
             throw new ArgumentNullException(nameof(timer));
@@ -52,7 +52,7 @@ public abstract class EventBase
         _timers.Add(timer);
     }
 
-    protected void TrackSubscription(IDisposable subscription)
+    public void TrackSubscription(IDisposable subscription)
     {
         if (subscription == null)
             throw new ArgumentNullException(nameof(subscription));
@@ -60,7 +60,7 @@ public abstract class EventBase
         _subscriptions.Add(subscription);
     }
 
-    protected void TrackCleanupAction(Action cleanupAction)
+    public void TrackCleanupAction(Action cleanupAction)
     {
         if (cleanupAction == null)
             throw new ArgumentNullException(nameof(cleanupAction));
@@ -75,7 +75,6 @@ public abstract class EventBase
             try
             {
                 timer.Stop();
-                timer.Elapsed -= null;
                 timer.Dispose();
             }
             catch

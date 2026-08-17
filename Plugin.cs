@@ -25,6 +25,7 @@ public class MyFirstPlugin : Plugin
 
     public override void Enable()
     {
+        EventManager.Register(new BlackoutEvent());
         CustomHandlersManager.RegisterEventsHandler(_roundHandler);
 
         Console.WriteLine("[SCPEventSystem] Enabled!");
