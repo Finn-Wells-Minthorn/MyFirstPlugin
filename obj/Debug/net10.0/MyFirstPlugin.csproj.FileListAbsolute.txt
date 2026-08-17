@@ -1,0 +1,11 @@
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net10.0\MyFirstPlugin.deps.json
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net10.0\MyFirstPlugin.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net10.0\MyFirstPlugin.pdb
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net10.0\MyFirstPlugin.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net10.0\MyFirstPlugin.AssemblyInfoInputs.cache
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net10.0\MyFirstPlugin.AssemblyInfo.cs
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net10.0\MyFirstPlugin.csproj.CoreCompileInputs.cache
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net10.0\MyFirstPlugin.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net10.0\refint\MyFirstPlugin.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net10.0\MyFirstPlugin.pdb
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net10.0\ref\MyFirstPlugin.dll

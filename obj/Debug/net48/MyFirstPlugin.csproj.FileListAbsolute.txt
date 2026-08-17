@@ -1,0 +1,13 @@
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net48\MyFirstPlugin.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net48\MyFirstPlugin.pdb
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net48\LabApi.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net48\YamlDotNet.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\bin\Debug\net48\Assembly-CSharp.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.csproj.AssemblyReference.cache
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.AssemblyInfoInputs.cache
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.AssemblyInfo.cs
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.csproj.CoreCompileInputs.cache
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstP.867612DA.Up2Date
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.dll
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.pdb
