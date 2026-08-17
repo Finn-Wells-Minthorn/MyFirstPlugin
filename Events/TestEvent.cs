@@ -1,4 +1,5 @@
 using LabApi.Features.Wrappers;
+using System.Threading.Tasks;
 
 namespace MyFirstPlugin.Events;
 
@@ -15,11 +16,14 @@ public class TestEvent : EventBase
             "<color=green><b>TEST EVENT ACTIVATED!</b></color>",
             10
         );
-
-        foreach (Player player in Player.List)
+        
+        Task.Delay(5000).ContinueWith(_ =>
         {
-            player.AddItem(ItemType.Flashlight);
-        }
+            foreach (Player player in Player.List)
+            {
+                player.AddItem(ItemType.Flashlight);
+            }
+        });
     }
 
     public override void Stop()

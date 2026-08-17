@@ -11,3 +11,4 @@ C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin
 C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstP.867612DA.Up2Date
 C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.dll
 C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.pdb
+C:\Users\furio\Documents\SCP Plugins\MyFirstPlugin\obj\Debug\net48\MyFirstPlugin.sourcelink.json
