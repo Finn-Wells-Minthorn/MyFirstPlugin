@@ -57,7 +57,7 @@ public class BlackoutEventConfig
 
     public bool EnableCassieAnnouncement { get; set; } = true;
 
-    public string CassieAnnouncementText { get; set; } = "Attention all personnel. Facility power failure detected.";
+    public string CassieAnnouncementText { get; set; } = "ATTENTION_ALL_PERSONNEL .G FACILITY_POWER_FAILURE_DETECTED";
 
     public string StartAnnouncement { get; set; } = "<color=red><b>BLACKOUT EVENT ACTIVATED!</b></color>";
 
