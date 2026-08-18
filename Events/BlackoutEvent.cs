@@ -19,6 +19,7 @@ public class BlackoutEvent : EventBase
     private int _elapsedSeconds;
     private bool _lightsOn;
     private bool _normalCycleRunning;
+    private bool _preBlackoutWarningShown;
 
     public BlackoutEvent(BlackoutEventConfig? config)
     {
@@ -32,16 +33,7 @@ public class BlackoutEvent : EventBase
 
     protected override void OnStart()
     {
-        if (_config.EnableCassieAnnouncement && !string.IsNullOrWhiteSpace(_config.CassieAnnouncementText))
-        {
-            LabApi.Features.Wrappers.Announcer.Message(
-                _config.CassieAnnouncementText,
-                string.Empty,
-                true,
-                0f,
-                1f
-            );
-        }
+        _preBlackoutWarningShown = false;
 
         Server.SendBroadcast(
             _config.StartAnnouncement,
@@ -117,6 +109,7 @@ public class BlackoutEvent : EventBase
 
         if (_config.EnableFlickering && _elapsedSeconds == 36)
         {
+            ShowPreBlackoutWarning();
             DoFlickerBurst(1);
             return;
         }
@@ -132,6 +125,18 @@ public class BlackoutEvent : EventBase
             _normalCycleRunning = true;
             StartNormalPostCinematicCycle();
         }
+    }
+
+    private void ShowPreBlackoutWarning()
+    {
+        if (_preBlackoutWarningShown)
+            return;
+
+        _preBlackoutWarningShown = true;
+        Server.SendBroadcast(
+            _config.PreBlackoutWarning,
+            _config.PreBlackoutWarningDurationSeconds
+        );
     }
 
     private void StartNormalPostCinematicCycle()

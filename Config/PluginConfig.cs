@@ -55,15 +55,15 @@ public class BlackoutEventConfig
 
     public float SubtleFlickerDurationSeconds { get; set; } = 0.15f;
 
-    public bool EnableCassieAnnouncement { get; set; } = true;
-
-    public string CassieAnnouncementText { get; set; } = "ATTENTION_ALL_PERSONNEL .G FACILITY_POWER_FAILURE_DETECTED";
-
     public string StartAnnouncement { get; set; } = "<color=red><b>BLACKOUT EVENT ACTIVATED!</b></color>";
+
+    public string PreBlackoutWarning { get; set; } = "<color=red><b>FACILITY POWER FAILURE DETECTED</b></color>";
 
     public string EndAnnouncement { get; set; } = "<color=green><b>Power restored. The blackout has ended.</b></color>";
 
     public ushort StartAnnouncementDurationSeconds { get; set; } = 10;
+
+    public ushort PreBlackoutWarningDurationSeconds { get; set; } = 6;
 
     public ushort EndAnnouncementDurationSeconds { get; set; } = 5;
 }
