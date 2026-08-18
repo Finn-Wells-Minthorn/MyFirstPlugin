@@ -1,4 +1,5 @@
 using MyFirstPlugin.Events;
+using UnityEngine;
 
 namespace MyFirstPlugin.Config;
 
@@ -9,6 +10,19 @@ public class PluginConfig
     public EventRollConfig EventRoll { get; set; } = new();
 
     public BlackoutEventConfig Blackout { get; set; } = new();
+
+    public TimeToGambleEventConfig TimeToGamble { get; set; } = new();
+}
+
+public class TimeToGambleEventConfig
+{
+    public Vector3 MtfMachinePosition { get; set; } = new Vector3(12f, 1.5f, 8f);
+
+    public Vector3 ScientistMachinePosition { get; set; } = new Vector3(-12f, 1.5f, 8f);
+
+    public string MtfMachineDisplayName { get; set; } = "MTF Gambling Machine";
+
+    public string ScientistMachineDisplayName { get; set; } = "Scientist Gambling Machine";
 }
 
 public class BlackoutEventConfig
