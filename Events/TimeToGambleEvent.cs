@@ -42,13 +42,12 @@ public class TimeToGambleEvent : EventBase
             return;
         }
 
-        Console.WriteLine($"[TimeToGambleEvent] Found target room '{targetRoom.Name}' at {targetRoom.Position} in zone '{targetRoom.Zone}'.");
+        Console.WriteLine($"[GAMBLE DEBUG] room found -> name='{targetRoom.Name}', position='{targetRoom.Position}', zone='{targetRoom.Zone}'");
 
         Vector3 mtfPosition = GetPositionForMachine(targetRoom, -1);
         Vector3 scientistPosition = GetPositionForMachine(targetRoom, 1);
 
-        Console.WriteLine($"[TimeToGambleEvent] MTF machine position: {mtfPosition}");
-        Console.WriteLine($"[TimeToGambleEvent] Scientist machine position: {scientistPosition}");
+        Console.WriteLine($"[GAMBLE DEBUG] position calculated -> mtf='{mtfPosition}', scientist='{scientistPosition}'");
 
         GamblingMachine mtfMachine = new GamblingMachine("mtf-gamble-machine", mtfPosition, GamblingMachineTeamType.Mtf, 5f);
         GamblingMachine scientistMachine = new GamblingMachine("scientist-gamble-machine", scientistPosition, GamblingMachineTeamType.Scientist, 5f);
@@ -152,11 +151,20 @@ public class TimeToGambleEvent : EventBase
             false
         );
 
-        Console.WriteLine($"[TimeToGambleEvent] Attempted to create machine '{machine.Id}' at {machine.Position}. Result: {(toy == null ? "NULL" : "SUCCESS")}");
+        Console.WriteLine($"[GAMBLE DEBUG] InteractableToy.Create -> machine='{machine.Id}', targetPosition='{machine.Position}', room='{_config.TargetRoomName}'");
+        Console.WriteLine($"[GAMBLE DEBUG] InteractableToy.Create result -> toyIsNull={toy == null}");
+
+        if (toy != null)
+        {
+            var rotation = (toy.Transform != null) ? toy.Transform.rotation : Quaternion.identity;
+            var isActive = (toy.GameObject != null) && toy.GameObject.activeSelf;
+            var isEnabled = (toy.GameObject != null) && toy.GameObject.activeInHierarchy;
+            Console.WriteLine($"[GAMBLE DEBUG] toy object -> type='{toy.GetType().FullName}', instance='{toy}', position='{toy.Position}', rotation='{rotation}', active='{isActive}', enabled='{isEnabled}'");
+        }
 
         if (toy == null)
         {
-            Console.WriteLine($"[TimeToGambleEvent] Failed to create machine '{machine.Id}'.");
+            Console.WriteLine($"[GAMBLE DEBUG] FAIL -> InteractableToy.Create returned null for '{machine.Id}'.");
             return null;
         }
 
@@ -168,7 +176,8 @@ public class TimeToGambleEvent : EventBase
         }
 
         _spawnedMachines.Add(toy);
-        Console.WriteLine($"[TimeToGambleEvent] Spawned physical gamble toy '{machine.Id}' at {machine.Position} with display name '{displayName}'.");
+        var toyName = (toy.GameObject != null) ? toy.GameObject.name : "<null>";
+        Console.WriteLine($"[GAMBLE DEBUG] SUCCESS -> physical gamble toy created for '{machine.Id}' at '{machine.Position}', toyName='{toyName}'");
 
         return toy;
     }
@@ -177,12 +186,14 @@ public class TimeToGambleEvent : EventBase
     {
         try
         {
+            Console.WriteLine($"[GAMBLE DEBUG] BindToy start -> machine='{machine.Id}', toyType='{toy.GetType().FullName}', toyPosition='{toy.Position}', toyInstance='{toy}'");
             machine.BindToy(toy);
+            Console.WriteLine($"[GAMBLE DEBUG] BindToy result -> machine='{machine.Id}', boundToyIsNull={machine.BoundToy == null}, boundToy='{machine.BoundToy}'");
             return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[TimeToGambleEvent] BindToy failed for machine '{machine.Id}': {ex.Message}");
+            Console.WriteLine($"[GAMBLE DEBUG] BindToy FAIL -> machine='{machine.Id}', error='{ex.Message}'");
             return false;
         }
     }
