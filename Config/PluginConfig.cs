@@ -16,9 +16,11 @@ public class PluginConfig
 
 public class TimeToGambleEventConfig
 {
-    public Vector3 MtfMachinePosition { get; set; } = new Vector3(12f, 1.5f, 8f);
+    public MapGeneration.RoomName TargetRoomName { get; set; } = MapGeneration.RoomName.EzGateA;
 
-    public Vector3 ScientistMachinePosition { get; set; } = new Vector3(-12f, 1.5f, 8f);
+    public float MachineHeightOffset { get; set; } = 1.5f;
+
+    public float MachineSeparationOffset { get; set; } = 2.5f;
 
     public string MtfMachineDisplayName { get; set; } = "MTF Gambling Machine";
 

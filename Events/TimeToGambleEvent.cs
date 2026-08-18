@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LabApi.Features.Wrappers;
 using MyFirstPlugin.Config;
 using UnityEngine;
@@ -34,22 +35,41 @@ public class TimeToGambleEvent : EventBase
         _machineManager.Unsubscribe();
         _spawnedMachines.Clear();
 
-        GamblingMachine mtfMachine = new GamblingMachine("mtf-gamble-machine", _config.MtfMachinePosition, GamblingMachineTeamType.Mtf, 5f);
-        GamblingMachine scientistMachine = new GamblingMachine("scientist-gamble-machine", _config.ScientistMachinePosition, GamblingMachineTeamType.Scientist, 5f);
+        Room? targetRoom = ResolveTargetRoom();
+        if (targetRoom == null)
+        {
+            Console.WriteLine($"[TimeToGambleEvent] Failed to find target room '{_config.TargetRoomName}'. No machines were spawned.");
+            return;
+        }
+
+        Console.WriteLine($"[TimeToGambleEvent] Found target room '{targetRoom.Name}' at {targetRoom.Position} in zone '{targetRoom.Zone}'.");
+
+        Vector3 mtfPosition = GetPositionForMachine(targetRoom, -1);
+        Vector3 scientistPosition = GetPositionForMachine(targetRoom, 1);
+
+        Console.WriteLine($"[TimeToGambleEvent] MTF machine position: {mtfPosition}");
+        Console.WriteLine($"[TimeToGambleEvent] Scientist machine position: {scientistPosition}");
+
+        GamblingMachine mtfMachine = new GamblingMachine("mtf-gamble-machine", mtfPosition, GamblingMachineTeamType.Mtf, 5f);
+        GamblingMachine scientistMachine = new GamblingMachine("scientist-gamble-machine", scientistPosition, GamblingMachineTeamType.Scientist, 5f);
 
         InteractableToy? mtfToy = SpawnMachine(mtfMachine, _config.MtfMachineDisplayName);
         InteractableToy? scientistToy = SpawnMachine(scientistMachine, _config.ScientistMachineDisplayName);
 
         if (mtfToy != null)
         {
-            mtfMachine.BindToy(mtfToy);
-            _machineManager.RegisterMachine(mtfMachine);
+            bool mtfBound = TryBindMachine(mtfMachine, mtfToy);
+            Console.WriteLine($"[TimeToGambleEvent] MTF BindToy(...) succeeded: {mtfBound}");
+            if (mtfBound)
+                _machineManager.RegisterMachine(mtfMachine);
         }
 
         if (scientistToy != null)
         {
-            scientistMachine.BindToy(scientistToy);
-            _machineManager.RegisterMachine(scientistMachine);
+            bool scientistBound = TryBindMachine(scientistMachine, scientistToy);
+            Console.WriteLine($"[TimeToGambleEvent] Scientist BindToy(...) succeeded: {scientistBound}");
+            if (scientistBound)
+                _machineManager.RegisterMachine(scientistMachine);
         }
 
         _machineManager.Subscribe();
@@ -97,6 +117,29 @@ public class TimeToGambleEvent : EventBase
         Console.WriteLine("[TimeToGambleEvent] Stopped.");
     }
 
+    private Room? ResolveTargetRoom()
+    {
+        IEnumerable<Room> rooms = Room.Get(_config.TargetRoomName);
+        Room? room = rooms.FirstOrDefault();
+
+        if (room == null)
+        {
+            room = Map.Rooms.FirstOrDefault(r => r.Name == _config.TargetRoomName);
+        }
+
+        return room;
+    }
+
+    private Vector3 GetPositionForMachine(Room room, int side)
+    {
+        float xOffset = side * _config.MachineSeparationOffset;
+        return new Vector3(
+            room.Position.x + xOffset,
+            room.Position.y + _config.MachineHeightOffset,
+            room.Position.z + (side > 0 ? 1.5f : -1.5f)
+        );
+    }
+
     private InteractableToy? SpawnMachine(GamblingMachine machine, string displayName)
     {
         if (machine == null)
@@ -108,6 +151,8 @@ public class TimeToGambleEvent : EventBase
             null,
             false
         );
+
+        Console.WriteLine($"[TimeToGambleEvent] Attempted to create machine '{machine.Id}' at {machine.Position}. Result: {(toy == null ? "NULL" : "SUCCESS")}");
 
         if (toy == null)
         {
@@ -123,8 +168,22 @@ public class TimeToGambleEvent : EventBase
         }
 
         _spawnedMachines.Add(toy);
-        Console.WriteLine($"[TimeToGambleEvent] Spawned gambling machine '{machine.Id}' at {machine.Position}.");
+        Console.WriteLine($"[TimeToGambleEvent] Spawned physical gamble toy '{machine.Id}' at {machine.Position} with display name '{displayName}'.");
 
         return toy;
+    }
+
+    private bool TryBindMachine(GamblingMachine machine, InteractableToy toy)
+    {
+        try
+        {
+            machine.BindToy(toy);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[TimeToGambleEvent] BindToy failed for machine '{machine.Id}': {ex.Message}");
+            return false;
+        }
     }
 }
