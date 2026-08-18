@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using LabApi.Features.Wrappers;
 using MyFirstPlugin.Config;
+using UnityEngine;
 
 namespace MyFirstPlugin.Events;
 
 public class TimeToGambleEvent : EventBase
 {
     private readonly TimeToGambleMachineManager _machineManager = new();
+    private readonly GambleRewardSpawner _rewardSpawner = new();
     private readonly TimeToGambleEventConfig _config;
     private int _affectedPlayerCount;
 
@@ -31,6 +33,7 @@ public class TimeToGambleEvent : EventBase
 
         _machineManager.Unsubscribe();
         _machineManager.Clear();
+        _rewardSpawner.Cleanup();
 
         GambleRewardPool rewardPool = new(_config.Rewards);
         GambleReward? selectedReward = rewardPool.SelectReward();
@@ -52,6 +55,12 @@ public class TimeToGambleEvent : EventBase
         }
 
         Console.WriteLine($"[SCPEventSystem] Gamble target room found: name='{targetRoom.Name}', position='{targetRoom.Position}', zone='{targetRoom.Zone}'.");
+
+        if (selectedReward != null)
+        {
+            Vector3 rewardPosition = targetRoom.Position + _config.RewardSpawnOffset;
+            _rewardSpawner.SpawnReward(selectedReward, rewardPosition, Quaternion.identity);
+        }
 
         Workstation? targetWorkstation = Workstation.List
             .Where(workstation => workstation.Room != null && workstation.Room.Name == _config.TargetRoomName)
@@ -96,6 +105,7 @@ public class TimeToGambleEvent : EventBase
     {
         _machineManager.Unsubscribe();
         _machineManager.Clear();
+        _rewardSpawner.Cleanup();
         Cleanup();
         _affectedPlayerCount = 0;
 

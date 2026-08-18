@@ -21,6 +21,8 @@ public class TimeToGambleEventConfig
 
     public int TargetWorkstationIndex { get; set; } = 0;
 
+    public Vector3 RewardSpawnOffset { get; set; } = new Vector3(0f, 1f, 0f);
+
     public List<GambleReward> Rewards { get; set; } = new()
     {
         new GambleReward(ItemType.GunE11SR, "E-11 SR", "Rare", 10d),
