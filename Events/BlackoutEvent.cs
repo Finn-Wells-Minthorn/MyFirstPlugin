@@ -34,13 +34,13 @@ public class BlackoutEvent : EventBase
     {
         if (_config.EnableCassieAnnouncement && !string.IsNullOrWhiteSpace(_config.CassieAnnouncementText))
         {
-            LabApi.Features.Wrappers.Announcer.Message(
+            var payload = new Cassie.CassieTtsPayload(
                 _config.CassieAnnouncementText,
-                _config.CassieAnnouncementText,
-                false,
-                1f,
-                0f
+                true,
+                false
             );
+
+            LabApi.Features.Wrappers.Announcer.Message(payload, 1f, 0f);
         }
 
         Server.SendBroadcast(
