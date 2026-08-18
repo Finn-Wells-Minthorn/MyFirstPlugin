@@ -55,9 +55,9 @@ public class BlackoutEventConfig
 
     public float SubtleFlickerDurationSeconds { get; set; } = 0.15f;
 
-    public bool EnableCassieAnnouncement { get; set; } = false;
+    public bool EnableCassieAnnouncement { get; set; } = true;
 
-    public string CassieAnnouncementText { get; set; } = "blackout event activated";
+    public string CassieAnnouncementText { get; set; } = "Attention all personnel. Facility power failure detected.";
 
     public string StartAnnouncement { get; set; } = "<color=red><b>BLACKOUT EVENT ACTIVATED!</b></color>";
 
