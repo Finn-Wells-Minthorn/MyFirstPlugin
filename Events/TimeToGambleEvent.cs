@@ -34,18 +34,8 @@ public class TimeToGambleEvent : EventBase
         _machineManager.Unsubscribe();
         _machineManager.Clear();
         _rewardSpawner.Cleanup();
-
-        GambleRewardPool rewardPool = new(_config.Rewards);
-        GambleReward? selectedReward = rewardPool.SelectReward();
-
-        if (selectedReward == null)
-        {
-            Console.WriteLine("[SCPEventSystem] Gamble roll result: no reward selected because the reward pool is empty or has no positive weights.");
-        }
-        else
-        {
-            Console.WriteLine($"[SCPEventSystem] Gamble roll result: {selectedReward.DisplayName} | Rarity: {selectedReward.Rarity}");
-        }
+        _machineManager.AuthorizedInteraction -= OnAuthorizedTerminalInteraction;
+        _machineManager.AuthorizedInteraction += OnAuthorizedTerminalInteraction;
 
         Room? targetRoom = ResolveTargetRoom();
         if (targetRoom == null)
@@ -55,12 +45,6 @@ public class TimeToGambleEvent : EventBase
         }
 
         Console.WriteLine($"[SCPEventSystem] Gamble target room found: name='{targetRoom.Name}', position='{targetRoom.Position}', zone='{targetRoom.Zone}'.");
-
-        if (selectedReward != null)
-        {
-            Vector3 rewardPosition = targetRoom.Position + _config.RewardSpawnOffset;
-            _rewardSpawner.SpawnReward(selectedReward, rewardPosition, Quaternion.identity);
-        }
 
         Workstation? targetWorkstation = Workstation.List
             .Where(workstation => workstation.Room != null && workstation.Room.Name == _config.TargetRoomName)
@@ -104,12 +88,39 @@ public class TimeToGambleEvent : EventBase
     protected override void OnStop()
     {
         _machineManager.Unsubscribe();
+        _machineManager.AuthorizedInteraction -= OnAuthorizedTerminalInteraction;
         _machineManager.Clear();
         _rewardSpawner.Cleanup();
         Cleanup();
         _affectedPlayerCount = 0;
 
         Console.WriteLine("[TimeToGambleEvent] Stopped.");
+    }
+
+    private void OnAuthorizedTerminalInteraction(GamblingMachine machine, Player player)
+    {
+        Console.WriteLine($"[SCPEventSystem] {player.Nickname} used the gamble terminal.");
+
+        GambleRewardPool rewardPool = new(_config.Rewards);
+        GambleReward? selectedReward = rewardPool.SelectReward();
+
+        if (selectedReward == null)
+        {
+            Console.WriteLine("[SCPEventSystem] Gamble result: no reward selected because the reward pool is empty or has no positive weights.");
+            return;
+        }
+
+        Console.WriteLine($"[SCPEventSystem] Gamble result: {selectedReward.DisplayName}");
+
+        Workstation? workstation = machine.BoundWorkstation;
+        if (workstation == null || workstation.IsDestroyed)
+        {
+            Console.WriteLine($"[SCPEventSystem] Failed to spawn gamble reward: {selectedReward.DisplayName}");
+            return;
+        }
+
+        Vector3 rewardPosition = workstation.Position + _config.RewardSpawnOffset;
+        _rewardSpawner.SpawnReward(selectedReward, rewardPosition, Quaternion.identity);
     }
 
     private Room? ResolveTargetRoom()

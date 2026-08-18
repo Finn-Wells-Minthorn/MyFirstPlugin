@@ -13,6 +13,8 @@ public sealed class TimeToGambleMachineManager
 
     public IReadOnlyCollection<GamblingMachine> Machines => _machines;
 
+    public event Action<GamblingMachine, Player>? AuthorizedInteraction;
+
     public void RegisterMachine(GamblingMachine machine, Workstation workstation)
     {
         if (machine == null)
@@ -74,7 +76,20 @@ public sealed class TimeToGambleMachineManager
 
             if (user != null)
             {
-                Console.WriteLine($"[SCPEventSystem] Gamble terminal interacted by: {user.Nickname} (machine='{machine.Id}', room='{workstation.Room?.Name}', position='{workstation.Position}').");
+                if (!machine.TryUse(user, out string reason))
+                {
+                    user.SendHint(reason, 3f);
+                    continue;
+                }
+
+                try
+                {
+                    AuthorizedInteraction?.Invoke(machine, user);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[SCPEventSystem] Gamble terminal interaction handler failed: {ex.Message}");
+                }
             }
         }
     }
