@@ -4,6 +4,12 @@ namespace MyFirstPlugin.Events;
 
 public sealed class GambleReward
 {
+    public GambleReward()
+    {
+        DisplayName = string.Empty;
+        Rarity = string.Empty;
+    }
+
     public GambleReward(
         ItemType itemType,
         string displayName,
@@ -22,11 +28,11 @@ public sealed class GambleReward
         Weight = weight;
     }
 
-    public ItemType ItemType { get; }
+    public ItemType ItemType { get; set; }
 
-    public string DisplayName { get; }
+    public string DisplayName { get; set; }
 
-    public string Rarity { get; }
+    public string Rarity { get; set; }
 
-    public double Weight { get; }
+    public double Weight { get; set; }
 }
