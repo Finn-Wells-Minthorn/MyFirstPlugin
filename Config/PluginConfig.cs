@@ -19,13 +19,13 @@ public class PluginConfig
 
 public class SpeedDemonEventConfig
 {
-    public byte Intensity { get; set; } = 3;
+    public byte Intensity { get; set; } = 20;
 
     public float DurationSeconds { get; set; } = 86400f;
 
-    public float StaminaDrainMultiplier { get; set; } = 0.75f;
+    public float StaminaDrainMultiplier { get; set; } = 0.5f;
 
-    public float StaminaRegenerationMultiplier { get; set; } = 1.5f;
+    public float StaminaRegenerationMultiplier { get; set; } = 1.0f;
 }
 
 public class TimeToGambleEventConfig
