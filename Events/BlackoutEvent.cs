@@ -19,6 +19,7 @@ public class BlackoutEvent : EventBase
     private int _elapsedSeconds;
     private bool _lightsOn;
     private bool _normalCycleRunning;
+    private bool _cassieAnnouncementTriggered;
 
     public BlackoutEvent(BlackoutEventConfig? config)
     {
@@ -32,16 +33,7 @@ public class BlackoutEvent : EventBase
 
     protected override void OnStart()
     {
-        if (_config.EnableCassieAnnouncement && !string.IsNullOrWhiteSpace(_config.CassieAnnouncementText))
-        {
-            var payload = new Cassie.CassieTtsPayload(
-                _config.CassieAnnouncementText,
-                true,
-                false
-            );
-
-            LabApi.Features.Wrappers.Announcer.Message(payload, 1f, 0f);
-        }
+        _cassieAnnouncementTriggered = false;
 
         Server.SendBroadcast(
             _config.StartAnnouncement,
@@ -117,6 +109,7 @@ public class BlackoutEvent : EventBase
 
         if (_config.EnableFlickering && _elapsedSeconds == 36)
         {
+            TriggerCassieAnnouncement();
             DoFlickerBurst(1);
             return;
         }
@@ -131,6 +124,25 @@ public class BlackoutEvent : EventBase
             _lightsOn = false;
             _normalCycleRunning = true;
             StartNormalPostCinematicCycle();
+        }
+    }
+
+    private void TriggerCassieAnnouncement()
+    {
+        if (_cassieAnnouncementTriggered)
+            return;
+
+        _cassieAnnouncementTriggered = true;
+
+        if (_config.EnableCassieAnnouncement && !string.IsNullOrWhiteSpace(_config.CassieAnnouncementText))
+        {
+            var payload = new Cassie.CassieTtsPayload(
+                _config.CassieAnnouncementText,
+                true,
+                false
+            );
+
+            LabApi.Features.Wrappers.Announcer.Message(payload, 1f, 0f);
         }
     }
 
