@@ -1,83 +1,81 @@
 using System;
 using System.Collections.Generic;
-using LabApi.Events.Arguments.PlayerEvents;
-using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
+using MEC;
 
 namespace MyFirstPlugin.Events;
 
 public sealed class TimeToGambleMachineManager
 {
     private readonly List<GamblingMachine> _machines = new();
-    private bool _subscribed;
+    private readonly Dictionary<string, uint> _lastKnownUsers = new();
+    private CoroutineHandle _monitorHandle;
 
     public IReadOnlyCollection<GamblingMachine> Machines => _machines;
 
-    public void RegisterMachine(GamblingMachine machine)
+    public void RegisterMachine(GamblingMachine machine, Workstation workstation)
     {
         if (machine == null)
             throw new ArgumentNullException(nameof(machine));
 
+        if (workstation == null)
+            throw new ArgumentNullException(nameof(workstation));
+
+        machine.BindWorkstation(workstation);
         _machines.Add(machine);
+        Console.WriteLine($"[SCPEventSystem] Registered existing workstation for '{machine.Id}' at position '{workstation.Position}', room='{workstation.Room?.Name}'.");
     }
 
     public void Clear()
     {
         _machines.Clear();
+        _lastKnownUsers.Clear();
     }
 
     public void Subscribe()
     {
-        if (_subscribed)
+        if (_monitorHandle.IsValid)
             return;
 
-        PlayerEvents.InteractedToy += OnPlayerInteractedToy;
-        _subscribed = true;
+        _monitorHandle = Timing.CallContinuously(0.1f, CheckWorkstations, () => { });
+        Console.WriteLine("[SCPEventSystem] Gamble workstation interaction monitor started.");
     }
 
     public void Unsubscribe()
     {
-        if (!_subscribed)
-            return;
+        if (_monitorHandle.IsValid)
+            Timing.KillCoroutines(_monitorHandle);
 
-        PlayerEvents.InteractedToy -= OnPlayerInteractedToy;
-        _subscribed = false;
+        _monitorHandle = default;
+        Console.WriteLine("[SCPEventSystem] Gamble workstation interaction monitor stopped.");
     }
 
-    private void OnPlayerInteractedToy(PlayerInteractedToyEventArgs args)
-    {
-        if (args == null)
-            return;
-
-        Player player = args.Player;
-        if (player == null)
-            return;
-
-        InteractableToy toy = args.Interactable;
-        if (toy == null)
-            return;
-
-        GamblingMachine? machine = FindMachineForToy(toy);
-        if (machine == null)
-            return;
-
-        if (!machine.TryUse(player, out string reason))
-        {
-            player.SendHint(reason, 3f);
-            return;
-        }
-
-        player.SendHint("Machine activated.", 3f);
-    }
-
-    private GamblingMachine? FindMachineForToy(InteractableToy toy)
+    private void CheckWorkstations()
     {
         foreach (GamblingMachine machine in _machines)
         {
-            if (machine.Matches(toy))
-                return machine;
-        }
+            Workstation? workstation = machine.BoundWorkstation;
+            if (workstation == null || workstation.IsDestroyed)
+                continue;
 
-        return null;
+            Player? user = workstation.KnownUser;
+            uint userId = user?.NetworkId ?? 0;
+
+            if (!_lastKnownUsers.TryGetValue(machine.Id, out uint previousUserId))
+            {
+                _lastKnownUsers[machine.Id] = userId;
+                continue;
+            }
+
+            if (userId == previousUserId)
+                continue;
+
+            _lastKnownUsers[machine.Id] = userId;
+
+            if (user != null)
+            {
+                Console.WriteLine($"[SCPEventSystem] Gamble terminal interacted by: {user.Nickname} (machine='{machine.Id}', room='{workstation.Room?.Name}', position='{workstation.Position}').");
+            }
+        }
     }
 }

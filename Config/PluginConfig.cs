@@ -16,15 +16,9 @@ public class PluginConfig
 
 public class TimeToGambleEventConfig
 {
-    public MapGeneration.RoomName TargetRoomName { get; set; } = MapGeneration.RoomName.EzGateA;
+    public MapGeneration.RoomName TargetRoomName { get; set; } = MapGeneration.RoomName.LczArmory;
 
-    public float MachineHeightOffset { get; set; } = 1.5f;
-
-    public float MachineSeparationOffset { get; set; } = 2.5f;
-
-    public string MtfMachineDisplayName { get; set; } = "MTF Gambling Machine";
-
-    public string ScientistMachineDisplayName { get; set; } = "Scientist Gambling Machine";
+    public int TargetWorkstationIndex { get; set; } = 0;
 }
 
 public class BlackoutEventConfig

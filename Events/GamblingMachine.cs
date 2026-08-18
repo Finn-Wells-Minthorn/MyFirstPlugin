@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using LabApi.Features.Wrappers;
-using UnityEngine;
 
 namespace MyFirstPlugin.Events;
 
@@ -17,7 +16,6 @@ public sealed class GamblingMachine
 
     public GamblingMachine(
         string id,
-        Vector3 position,
         GamblingMachineTeamType machineType,
         float cooldownSeconds = 5f)
     {
@@ -25,32 +23,24 @@ public sealed class GamblingMachine
             throw new ArgumentException("Machine id cannot be empty.", nameof(id));
 
         Id = id;
-        Position = position;
         MachineType = machineType;
         CooldownSeconds = Math.Max(0f, cooldownSeconds);
     }
 
     public string Id { get; }
 
-    public Vector3 Position { get; }
-
     public GamblingMachineTeamType MachineType { get; }
 
     public float CooldownSeconds { get; }
 
-    public InteractableToy? BoundToy { get; private set; }
+    public Workstation? BoundWorkstation { get; private set; }
 
-    public void BindToy(InteractableToy toy)
+    public void BindWorkstation(Workstation workstation)
     {
-        if (toy == null)
-            throw new ArgumentNullException(nameof(toy));
+        if (workstation == null)
+            throw new ArgumentNullException(nameof(workstation));
 
-        BoundToy = toy;
-    }
-
-    public bool Matches(InteractableToy toy)
-    {
-        return BoundToy != null && BoundToy == toy;
+        BoundWorkstation = workstation;
     }
 
     public bool TryUse(Player player, out string reason)
