@@ -35,6 +35,7 @@ public class MyFirstPlugin : Plugin<PluginConfig>
     private void RegisterEvents()
     {
         EventManager.Register(new BlackoutEvent(Config.Blackout));
+        EventManager.Register(new TimeToGambleEvent());
     }
 
     public override void Enable()
