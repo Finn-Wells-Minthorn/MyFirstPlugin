@@ -19,7 +19,7 @@ public class PluginConfig
 
 public class SpeedDemonEventConfig
 {
-    public byte Intensity { get; set; } = 50;
+    public byte Intensity { get; set; } = 150;
 
     public float DurationSeconds { get; set; } = 86400f;
 

@@ -119,9 +119,17 @@ public sealed class SpeedDemonEvent : EventBase
         _lastStamina[player.NetworkId] = player.StaminaRemaining;
 
         player.EnableEffect<MovementBoost>(
-            3,
+            _config.Intensity,
             _config.DurationSeconds,
             false
+        );
+
+        MovementBoost? appliedEffect = player.GetEffect<MovementBoost>();
+        bool isEnabled = appliedEffect != null && appliedEffect.IsEnabled;
+        byte appliedIntensity = appliedEffect?.Intensity ?? 0;
+        float remainingDuration = appliedEffect?.TimeLeft ?? 0f;
+        Console.WriteLine(
+            $"[SCPEventSystem] Speed Demon applied: player='{player.Nickname}', intensity='{_config.Intensity}', effectEnabled='{isEnabled}', actualIntensity='{appliedIntensity}', configuredDuration='{_config.DurationSeconds}', remainingDuration='{remainingDuration}'."
         );
     }
 
