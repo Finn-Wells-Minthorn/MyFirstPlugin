@@ -4,6 +4,7 @@ using CustomPlayerEffects;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
+using MEC;
 using MyFirstPlugin.Config;
 
 namespace MyFirstPlugin.Events;
@@ -12,6 +13,9 @@ public sealed class SpeedDemonEvent : EventBase
 {
     private readonly SpeedDemonEventConfig _config;
     private readonly Dictionary<uint, MovementBoostState> _affectedPlayers = new();
+    private readonly Dictionary<uint, float> _originalStamina = new();
+    private readonly Dictionary<uint, float> _lastStamina = new();
+    private CoroutineHandle _staminaHandle;
     private bool _subscribed;
 
     public SpeedDemonEvent(SpeedDemonEventConfig? config = null)
@@ -26,6 +30,7 @@ public sealed class SpeedDemonEvent : EventBase
     protected override void OnStart()
     {
         Subscribe();
+        _staminaHandle = Timing.CallContinuously(0.1f, AdjustStamina, () => { });
 
         foreach (Player player in Player.List)
             ApplyToHuman(player);
@@ -34,6 +39,11 @@ public sealed class SpeedDemonEvent : EventBase
     protected override void OnStop()
     {
         Unsubscribe();
+
+        if (_staminaHandle.IsValid)
+            Timing.KillCoroutines(_staminaHandle);
+
+        _staminaHandle = default;
 
         foreach (KeyValuePair<uint, MovementBoostState> affectedPlayer in _affectedPlayers)
         {
@@ -51,9 +61,13 @@ public sealed class SpeedDemonEvent : EventBase
                 continue;
 
             RestorePlayer(player, affectedPlayer.Value);
+            if (_originalStamina.TryGetValue(affectedPlayer.Key, out float originalStamina))
+                player.StaminaRemaining = originalStamina;
         }
 
         _affectedPlayers.Clear();
+        _originalStamina.Clear();
+        _lastStamina.Clear();
     }
 
     private void Subscribe()
@@ -99,13 +113,49 @@ public sealed class SpeedDemonEvent : EventBase
                 existingEffect?.Intensity ?? 0,
                 existingEffect?.TimeLeft ?? 0f
             );
+            _originalStamina[player.NetworkId] = player.StaminaRemaining;
         }
 
+        _lastStamina[player.NetworkId] = player.StaminaRemaining;
+
         player.EnableEffect<MovementBoost>(
-            _config.Intensity,
+            3,
             _config.DurationSeconds,
             false
         );
+    }
+
+    private void AdjustStamina()
+    {
+        foreach (Player player in Player.List)
+        {
+            if (player == null || player.IsDestroyed || !player.IsHuman)
+                continue;
+
+            if (!_originalStamina.ContainsKey(player.NetworkId))
+                ApplyToHuman(player);
+
+            float currentStamina = player.StaminaRemaining;
+            if (!_lastStamina.TryGetValue(player.NetworkId, out float previousStamina))
+            {
+                _lastStamina[player.NetworkId] = currentStamina;
+                continue;
+            }
+
+            float delta = currentStamina - previousStamina;
+            if (delta < 0f)
+            {
+                currentStamina = previousStamina + (delta * Math.Max(0f, _config.StaminaDrainMultiplier));
+            }
+            else if (delta > 0f)
+            {
+                currentStamina = previousStamina + (delta * Math.Max(0f, _config.StaminaRegenerationMultiplier));
+            }
+
+            currentStamina = Math.Max(0f, Math.Min(100f, currentStamina));
+            player.StaminaRemaining = currentStamina;
+            _lastStamina[player.NetworkId] = currentStamina;
+        }
     }
 
     private static void RestorePlayer(Player player, MovementBoostState state)
