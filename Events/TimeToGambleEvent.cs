@@ -17,9 +17,10 @@ public class TimeToGambleEvent : EventBase
     public TimeToGambleEvent(TimeToGambleEventConfig? config = null)
     {
         _config = config ?? new TimeToGambleEventConfig();
+        Disable();
     }
 
-    public override string Name => "Time To Gamble";
+    public override string Name => "Time To Gamble (Development)";
 
     public override string Description =>
         "A modular event that strips starting equipment from human players and detects interaction with one existing workstation.";
