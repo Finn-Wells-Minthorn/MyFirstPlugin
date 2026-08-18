@@ -1,4 +1,5 @@
 using MyFirstPlugin.Events;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MyFirstPlugin.Config;
@@ -19,6 +20,14 @@ public class TimeToGambleEventConfig
     public MapGeneration.RoomName TargetRoomName { get; set; } = MapGeneration.RoomName.LczArmory;
 
     public int TargetWorkstationIndex { get; set; } = 0;
+
+    public List<GambleReward> Rewards { get; set; } = new()
+    {
+        new GambleReward(ItemType.GunE11SR, "E-11 SR", "Rare", 10d),
+        new GambleReward(ItemType.Medkit, "Medkit", "Uncommon", 25d),
+        new GambleReward(ItemType.Flashlight, "Flashlight", "Common", 45d),
+        new GambleReward(ItemType.GrenadeFlash, "Flashbang", "Uncommon", 20d)
+    };
 }
 
 public class BlackoutEventConfig

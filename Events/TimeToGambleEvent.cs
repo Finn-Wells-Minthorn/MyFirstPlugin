@@ -32,6 +32,18 @@ public class TimeToGambleEvent : EventBase
         _machineManager.Unsubscribe();
         _machineManager.Clear();
 
+        GambleRewardPool rewardPool = new(_config.Rewards);
+        GambleReward? selectedReward = rewardPool.SelectReward();
+
+        if (selectedReward == null)
+        {
+            Console.WriteLine("[SCPEventSystem] Gamble roll result: no reward selected because the reward pool is empty or has no positive weights.");
+        }
+        else
+        {
+            Console.WriteLine($"[SCPEventSystem] Gamble roll result: {selectedReward.DisplayName} | Rarity: {selectedReward.Rarity}");
+        }
+
         Room? targetRoom = ResolveTargetRoom();
         if (targetRoom == null)
         {
