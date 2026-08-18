@@ -50,6 +50,8 @@ public class TimeToGambleEvent : EventBase
             .Where(workstation => workstation.Room != null && workstation.Room.Name == _config.TargetRoomName)
             .ElementAtOrDefault(_config.TargetWorkstationIndex);
 
+        Console.WriteLine($"[SCPEventSystem] Workstation diagnostics: total={Workstation.List.Count}, matchingRoom={Workstation.List.Count(workstation => workstation.Room != null && workstation.Room.Name == _config.TargetRoomName)}, targetIndex={_config.TargetWorkstationIndex}.");
+
         if (targetWorkstation == null)
         {
             Console.WriteLine($"[SCPEventSystem] No existing workstation found in room '{targetRoom.Name}' at configured index {_config.TargetWorkstationIndex}.");
@@ -57,6 +59,7 @@ public class TimeToGambleEvent : EventBase
         }
 
         Console.WriteLine($"[SCPEventSystem] Existing gamble terminal found: type='{targetWorkstation.GetType().FullName}', room='{targetWorkstation.Room?.Name}', position='{targetWorkstation.Position}'.");
+        Console.WriteLine($"[SCPEventSystem] Target workstation state: status='{targetWorkstation.Status}', knownUser='{targetWorkstation.KnownUser?.Nickname ?? "<none>"}', isDestroyed='{targetWorkstation.IsDestroyed}'.");
 
         GamblingMachine gambleMachine = new GamblingMachine(
             "gamble-terminal",

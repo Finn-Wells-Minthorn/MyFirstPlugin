@@ -88,6 +88,9 @@ public sealed class GamblingMachine
             return false;
         }
 
+        if (player.IsChaos)
+            return true;
+
         if (player.Team == PlayerRoles.Team.SCPs || player.Team == PlayerRoles.Team.ClassD)
         {
             reason = "Your team is not allowed to use this machine.";
