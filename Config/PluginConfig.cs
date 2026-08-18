@@ -13,6 +13,15 @@ public class PluginConfig
     public BlackoutEventConfig Blackout { get; set; } = new();
 
     public TimeToGambleEventConfig TimeToGamble { get; set; } = new();
+
+    public SpeedDemonEventConfig SpeedDemon { get; set; } = new();
+}
+
+public class SpeedDemonEventConfig
+{
+    public byte Intensity { get; set; } = 255;
+
+    public float DurationSeconds { get; set; } = 86400f;
 }
 
 public class TimeToGambleEventConfig
