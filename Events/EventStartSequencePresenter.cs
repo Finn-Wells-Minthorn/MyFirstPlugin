@@ -44,7 +44,7 @@ public sealed class EventStartSequencePresenter
                 yield break;
 
             Server.SendBroadcast("SPECIAL EVENT", 2);
-            yield return Timing.WaitForSeconds(0.75f);
+            yield return Timing.WaitForSeconds(0.6f);
 
             foreach (int count in new[] { 3, 2, 1 })
             {
@@ -52,7 +52,7 @@ public sealed class EventStartSequencePresenter
                     yield break;
 
                 Server.SendBroadcast(count.ToString(), 1);
-                yield return Timing.WaitForSeconds(1f);
+                yield return Timing.WaitForSeconds(0.6f);
             }
 
             if (_isCancelled)

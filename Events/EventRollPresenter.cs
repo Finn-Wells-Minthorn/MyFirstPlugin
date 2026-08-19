@@ -76,16 +76,13 @@ public sealed class EventRollPresenter
             if (_isCancelled)
                 yield break;
 
-            Server.SendBroadcast("EVENT SELECTING...", 1);
-            yield return Timing.WaitForSeconds(0.35f);
-
             int winnerIndex = eventNames.FindIndex(x => string.Equals(x, selectedEvent.Name, StringComparison.OrdinalIgnoreCase));
             if (winnerIndex < 0)
                 winnerIndex = 0;
 
             int currentIndex = 0;
-            float interval = Math.Max(0.08f, _config.InitialIntervalSeconds);
-            int stepCount = Math.Max(18, _config.RollIterationCount);
+            float interval = Math.Max(0.04f, _config.InitialIntervalSeconds);
+            int stepCount = Math.Max(10, _config.RollIterationCount);
 
             for (int i = 0; i < stepCount && !_isCancelled; i++)
             {
@@ -101,13 +98,13 @@ public sealed class EventRollPresenter
                 Server.SendBroadcast(eventNames[currentIndex], 1);
                 yield return Timing.WaitForSeconds(interval);
 
-                if (i < 12)
+                if (i < stepCount / 2)
                 {
-                    interval = Math.Min(_config.MaxIntervalSeconds, interval + 0.06f);
+                    interval = Math.Min(_config.MaxIntervalSeconds, interval + 0.025f);
                 }
                 else
                 {
-                    interval = Math.Min(_config.MaxIntervalSeconds, interval + 0.12f);
+                    interval = Math.Min(_config.MaxIntervalSeconds, interval + 0.05f);
                 }
             }
 
@@ -115,7 +112,7 @@ public sealed class EventRollPresenter
                 yield break;
 
             Server.SendBroadcast("EVENT SELECTED", 2);
-            yield return Timing.WaitForSeconds(0.5f);
+            yield return Timing.WaitForSeconds(0.2f);
 
             if (_isCancelled)
                 yield break;
@@ -139,11 +136,11 @@ public sealed class EventRollPresenter
 
 public class EventRollConfig
 {
-    public float InitialIntervalSeconds { get; set; } = 0.12f;
+    public float InitialIntervalSeconds { get; set; } = 0.06f;
 
-    public float MaxIntervalSeconds { get; set; } = 0.9f;
+    public float MaxIntervalSeconds { get; set; } = 0.5f;
 
-    public ushort FinalResultDisplaySeconds { get; set; } = 3;
+    public ushort FinalResultDisplaySeconds { get; set; } = 1;
 
-    public int RollIterationCount { get; set; } = 22;
+    public int RollIterationCount { get; set; } = 18;
 }
