@@ -78,6 +78,8 @@ public class BlackoutEvent : EventBase
     private void OnSequenceTick()
     {
         int blackoutDurationSeconds = Math.Max(1, _config.BlackoutDurationSeconds);
+        _elapsedSeconds++;
+
         if (_elapsedSeconds >= blackoutDurationSeconds)
         {
             EventManager.StopCurrentEvent();
@@ -86,8 +88,6 @@ public class BlackoutEvent : EventBase
 
         if (_normalCycleRunning)
             return;
-
-        _elapsedSeconds++;
 
         if (_config.EnableFlickering && _elapsedSeconds == 1)
         {
@@ -117,9 +117,6 @@ public class BlackoutEvent : EventBase
         int transitionDelaySeconds = Math.Max(1, _config.FlickerTransitionDelaySeconds);
         if (_elapsedSeconds == transitionDelaySeconds)
         {
-            if (_sequenceHandle.IsValid)
-                Timing.KillCoroutines(_sequenceHandle);
-
             Map.TurnOffLights();
             _lightsOn = false;
             _normalCycleRunning = true;
@@ -291,18 +288,18 @@ public class BlackoutEvent : EventBase
 
             elapsed = when;
 
-            if (!IsRunning || !_lightsOn)
+            if (!IsRunning || _lightsOn)
                 yield break;
 
-            Map.TurnOffLights();
-            _lightsOn = false;
+            Map.TurnOnLights();
+            _lightsOn = true;
             yield return Timing.WaitForSeconds(flickerDuration);
 
             if (!IsRunning)
                 yield break;
 
-            Map.TurnOnLights();
-            _lightsOn = true;
+            Map.TurnOffLights();
+            _lightsOn = false;
         }
     }
 

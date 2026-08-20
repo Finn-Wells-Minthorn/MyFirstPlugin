@@ -33,7 +33,36 @@ public abstract class EventBase
             return;
 
         IsRunning = true;
-        OnStart();
+
+        try
+        {
+            OnStart();
+        }
+        catch
+        {
+            // Best-effort rollback for events that subscribed handlers or started
+            // coroutines before their startup failed. Preserve the original error.
+            try
+            {
+                OnStop();
+            }
+            catch
+            {
+            }
+            finally
+            {
+                try
+                {
+                    Cleanup();
+                }
+                finally
+                {
+                    IsRunning = false;
+                }
+            }
+
+            throw;
+        }
     }
 
     public virtual void Stop()
@@ -41,9 +70,21 @@ public abstract class EventBase
         if (!IsRunning)
             return;
 
-        OnStop();
-        Cleanup();
-        IsRunning = false;
+        try
+        {
+            OnStop();
+        }
+        finally
+        {
+            try
+            {
+                Cleanup();
+            }
+            finally
+            {
+                IsRunning = false;
+            }
+        }
     }
 
     protected virtual void OnStart()

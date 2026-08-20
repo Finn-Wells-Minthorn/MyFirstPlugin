@@ -12,6 +12,7 @@ public class RoundHandler : CustomEventsHandler
     private readonly EventSelector _eventSelector = new();
     private EventRollPresenter? _eventRollPresenter;
     private EventStartSequencePresenter? _eventStartSequencePresenter;
+    private bool _isActive;
 
     private EventRollPresenter EventRollPresenter =>
         _eventRollPresenter ??= new EventRollPresenter(
@@ -20,8 +21,29 @@ public class RoundHandler : CustomEventsHandler
     private EventStartSequencePresenter EventStartSequencePresenter =>
         _eventStartSequencePresenter ??= new EventStartSequencePresenter();
 
+    public void Activate()
+    {
+        CancelPendingSelection();
+        _isActive = true;
+    }
+
+    public void Deactivate()
+    {
+        _isActive = false;
+        CancelPendingSelection();
+    }
+
+    private void CancelPendingSelection()
+    {
+        _eventStartSequencePresenter?.Cancel();
+        _eventRollPresenter?.Cancel();
+    }
+
     public override void OnServerRoundStarted()
     {
+        if (!_isActive)
+            return;
+
         Logger.Info("[SCPEventSystem] Round started.");
 
         if (!global::MyFirstPlugin.MyFirstPlugin.AutomaticEventsEnabled)
@@ -54,12 +76,15 @@ public class RoundHandler : CustomEventsHandler
 
         EventStartSequencePresenter.Start(() =>
         {
+            if (!_isActive)
+                return;
+
             EventRollPresenter.Start(
                 selectedEvent,
                 enabledEvents,
                 startedEvent =>
                 {
-                    if (EventManager.CurrentEvent != null)
+                    if (!_isActive || EventManager.CurrentEvent != null)
                         return;
 
                     EventBase? launchedEvent = EventManager.StartEvent(startedEvent);
@@ -78,16 +103,14 @@ public class RoundHandler : CustomEventsHandler
     public override void OnServerRoundEnded(RoundEndedEventArgs ev)
     {
         Logger.Info("[SCPEventSystem] Round ended.");
-        EventStartSequencePresenter.Cancel();
-        EventRollPresenter.Cancel();
+        CancelPendingSelection();
         EventManager.StopCurrentEvent();
     }
 
     public override void OnServerRoundRestarted()
     {
         Logger.Info("[SCPEventSystem] Round restarting.");
-        EventStartSequencePresenter.Cancel();
-        EventRollPresenter.Cancel();
+        CancelPendingSelection();
         EventManager.StopCurrentEvent();
     }
 }

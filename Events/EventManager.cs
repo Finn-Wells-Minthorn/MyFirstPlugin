@@ -107,7 +107,26 @@ public static class EventManager
             StopCurrentEvent();
 
         CurrentEvent = eventInstance;
-        eventInstance.Start();
+
+        try
+        {
+            eventInstance.Start();
+        }
+        catch
+        {
+            if (CurrentEvent == eventInstance)
+                CurrentEvent = null;
+
+            throw;
+        }
+
+        if (!eventInstance.IsRunning)
+        {
+            if (CurrentEvent == eventInstance)
+                CurrentEvent = null;
+
+            return null;
+        }
 
         return CurrentEvent;
     }
@@ -122,6 +141,19 @@ public static class EventManager
         current.Stop();
 
         return current;
+    }
+
+    public static void Reset()
+    {
+        try
+        {
+            StopCurrentEvent();
+        }
+        finally
+        {
+            Registered.Clear();
+            CurrentEvent = null;
+        }
     }
 
     public static EventBase? SelectRandomEvent()
