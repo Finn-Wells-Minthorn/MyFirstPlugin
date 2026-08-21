@@ -3,7 +3,6 @@ using LabApi.Features;
 using LabApi.Loader;
 using LabApi.Loader.Features.Plugins;
 using System;
-using MyFirstPlugin.Commands;
 using MyFirstPlugin.Config;
 using MyFirstPlugin.Handlers;
 using MyFirstPlugin.Events;
@@ -30,7 +29,6 @@ public class MyFirstPlugin : Plugin<PluginConfig>
         new(LabApiProperties.CompiledVersion);
 
     private readonly RoundHandler _roundHandler = new();
-    private bool _commandsRegistered;
 
     private void RegisterEvents()
     {
@@ -41,31 +39,60 @@ public class MyFirstPlugin : Plugin<PluginConfig>
 
     public override void Enable()
     {
-        Instance = this;
-
-        RegisterEvents();
-        RegisterCommands();
-        CustomHandlersManager.RegisterEventsHandler(_roundHandler);
+        try
+        {
+            EventManager.Reset();
+            Instance = this;
+            RegisterEvents();
+            _roundHandler.Activate();
+            CustomHandlersManager.RegisterEventsHandler(_roundHandler);
+        }
+        catch
+        {
+            CleanupPluginState();
+            throw;
+        }
 
         Console.WriteLine("[SCPEventSystem] Enabled!");
     }
 
-    private void RegisterCommands()
-    {
-        if (_commandsRegistered)
-            return;
-
-        CommandLoader.RegisterCommands(typeof(EventCommand), Name);
-        _commandsRegistered = true;
-    }
-
     public override void Disable()
     {
-        EventManager.StopCurrentEvent();
-
-        CustomHandlersManager.UnregisterEventsHandler(_roundHandler);
-        Instance = null;
+        CleanupPluginState();
 
         Console.WriteLine("[SCPEventSystem] Disabled!");
+    }
+
+    private void CleanupPluginState()
+    {
+        try
+        {
+            _roundHandler.Deactivate();
+        }
+        finally
+        {
+            try
+            {
+                EventManager.Reset();
+            }
+            finally
+            {
+                try
+                {
+                    CustomHandlersManager.UnregisterEventsHandler(_roundHandler);
+                }
+                finally
+                {
+                    try
+                    {
+                        this.UnregisterCommands();
+                    }
+                    finally
+                    {
+                        Instance = null;
+                    }
+                }
+            }
+        }
     }
 }
