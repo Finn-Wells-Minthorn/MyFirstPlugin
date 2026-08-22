@@ -95,7 +95,6 @@ public class TimeToGambleEvent : EventBase
         _machineManager.AuthorizedInteraction -= OnAuthorizedTerminalInteraction;
         _machineManager.Clear();
         _rewardSpawner.Cleanup();
-        Cleanup();
         _affectedPlayerCount = 0;
 
         Console.WriteLine("[TimeToGambleEvent] Stopped.");
