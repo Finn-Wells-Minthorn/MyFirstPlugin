@@ -9,6 +9,8 @@ public static class EventManager
     private static readonly Dictionary<string, EventBase> Registered = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Random Random = new();
 
+    public static event Action<EventBase>? EventStarting;
+
     public static EventBase? CurrentEvent { get; private set; }
 
     public static IReadOnlyCollection<EventBase> RegisteredEvents => Registered.Values;
@@ -100,6 +102,8 @@ public static class EventManager
         if (!eventInstance.IsEnabled)
             return null;
 
+        EventStarting?.Invoke(eventInstance);
+
         if (eventInstance.IsRunning)
             return eventInstance;
 
@@ -153,6 +157,7 @@ public static class EventManager
         {
             Registered.Clear();
             CurrentEvent = null;
+            EventStarting = null;
         }
     }
 
